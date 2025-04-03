@@ -1,0 +1,42 @@
+import {
+    Body,
+    Controller,
+    Get,
+    Param,
+    Post,
+    Query,
+    ParseIntPipe,
+    ValidationPipe
+} from '@nestjs/common';
+import { ExpensesService } from './expenses.service';
+import { ExpenseType } from './types';
+import { CreateExpenseDto } from './dto/create-expense.dto';
+// import { ApiResponse } from '@nestjs/swagger';
+
+@Controller('expenses')
+export class ExpensesController {
+    constructor(private readonly expensesService: ExpensesService) { }
+    @Get()
+    findAll(
+        @Query('expenseType') expenseType: ExpenseType,
+        @Query('page') page: number = 1,
+        @Query('limit') limit: number = 2,
+    ) {
+        return this.expensesService.findAll(expenseType, +page, limit);
+    }
+    // findAll(@Query('expenseType') expenseType: ExpenseType) {
+    //     if (!expenseType) return 'This action returns all expense';
+
+    //     return `This action returns all ${expenseType} expenses`;
+    // }
+
+    @Get(':id')
+    findOne(@Param('id', ParseIntPipe) id: number) {
+        return this.expensesService.findOne(id);
+    }
+
+    @Post()
+    create(@Body(ValidationPipe) expense: CreateExpenseDto) {
+        return this.expensesService.create(expense);
+    }
+}

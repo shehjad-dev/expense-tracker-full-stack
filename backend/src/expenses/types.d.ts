@@ -1,0 +1,1 @@
+export type ExpenseType = 'recurring' | 'non-recurring';
