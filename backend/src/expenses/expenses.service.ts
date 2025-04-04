@@ -63,6 +63,10 @@ export class ExpensesService {
                     .sort(sort)
                     .skip(skip)
                     .limit(limit)
+                    .populate({
+                        path: 'category',
+                        select: '_id name' // Specify the fields you want to select
+                    })
                     .exec(),
                 this.expenseModel.countDocuments(query).exec(),
             ]);
@@ -109,7 +113,14 @@ export class ExpensesService {
             throw new BadRequestException(`Invalid ID format: ${id}`);
         }
 
-        const expense = await this.expenseModel.findById(id).select('-__v').exec();
+        const expense = await this.expenseModel
+            .findById(id)
+            .select('-__v')
+            .populate({
+                path: 'category',
+                select: '_id name' // Specify the fields you want to select
+            })
+            .exec();
 
         if (!expense) {
             throw new NotFoundException(`Expense with id ${id} not found`);

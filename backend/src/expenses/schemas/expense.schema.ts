@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { ObjectId } from 'mongoose';
+import { ObjectId, SchemaTypes } from 'mongoose';
 // import { HydratedDocument } from 'mongoose';
 
 // export type CatDocument = HydratedDocument<Cat>;
@@ -9,14 +9,17 @@ export class Expense {
     //   @Prop()
     _id: ObjectId;
 
+    @Prop({ type: SchemaTypes.ObjectId, ref: 'Category', required: true })
+    category: ObjectId;
+
     @Prop({ required: true })
     name: string;
 
     @Prop({ required: true })
     amount: number;
 
-    @Prop({ required: true })
-    category: string;
+    // @Prop({ required: true })
+    // category: string;
 
     @Prop({ required: true })
     isRecurring: boolean;
