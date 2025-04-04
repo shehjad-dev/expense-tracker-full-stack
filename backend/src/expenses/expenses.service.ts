@@ -4,6 +4,7 @@ import { CreateExpenseDto } from './dto/create-expense.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Expense } from './schemas/expense.schema';
 import { Model, FilterQuery, SortOrder } from 'mongoose';
+import { UpdateExpenseDto } from './dto/update-expense.dto';
 
 @Injectable()
 export class ExpensesService {
@@ -11,13 +12,13 @@ export class ExpensesService {
         @InjectModel(Expense.name) private expenseModel: Model<Expense>,
     ) { }
 
-    private expenses: any[] = [
-        { id: 1, name: 'Groceries', amount: 2000, category: 'family', isRecurring: false, createdAt: "2nd March, 2025" },
-        { id: 2, name: 'Electricity', amount: 1400, category: 'family', isRecurring: true, createdAt: "4th March, 2025" },
-        { id: 3, name: 'Books', amount: 300, category: 'studies', isRecurring: false, createdAt: "9th March, 2025" },
-        { id: 4, name: 'Uber Cost', amount: 220, category: 'work', isRecurring: false, createdAt: "1st April, 2025" },
-        { id: 5, name: 'Netflix Subscription', amount: 120, category: 'entertainment', isRecurring: true, createdAt: "2nd April, 2025" },
-    ];
+    // private expenses: any[] = [
+    //     { id: 1, name: 'Groceries', amount: 2000, category: 'family', isRecurring: false, createdAt: "2nd March, 2025" },
+    //     { id: 2, name: 'Electricity', amount: 1400, category: 'family', isRecurring: true, createdAt: "4th March, 2025" },
+    //     { id: 3, name: 'Books', amount: 300, category: 'studies', isRecurring: false, createdAt: "9th March, 2025" },
+    //     { id: 4, name: 'Uber Cost', amount: 220, category: 'work', isRecurring: false, createdAt: "1st April, 2025" },
+    //     { id: 5, name: 'Netflix Subscription', amount: 120, category: 'entertainment', isRecurring: true, createdAt: "2nd April, 2025" },
+    // ];
 
     private getPaginationMeta(totalExpenses: number, page: number, limit: number, sortBy: string, expenseType: string | undefined) {
         const sort = sortBy === 'oldest' ? `&sortBy=oldest` : ``;
@@ -125,6 +126,22 @@ export class ExpensesService {
             message: 'Expense created successfully',
             newExpenseId: newExpense._id,
             // newExpenseId: newId,
+        };
+    }
+
+    async update(id: string, expense: UpdateExpenseDto) {
+        const updatedExpense = await this.expenseModel.findByIdAndUpdate(id, expense, { new: true });
+        return {
+            message: 'Expense updated successfully',
+            updatedExpense: updatedExpense,
+        };
+    }
+
+    async remove(id: string) {
+        const deletedExpense = await this.expenseModel.findByIdAndDelete(id);
+        return {
+            message: 'Expense deleted successfully',
+            deletedExpense: deletedExpense,
         };
     }
 
