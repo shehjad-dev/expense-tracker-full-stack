@@ -4,15 +4,15 @@ import { AppService } from './app.service';
 import { ConfigModule } from './config/config.module';
 // import { ConfigModule } from '@nestjs/config';
 import { ExpensesModule } from './expenses/expenses.module';
-import { MongooseModule } from '@nestjs/mongoose';
-
-const DB_URL = "mongodb+srv://satauswebdev:QITqUg7tUuFm2nbn@expensestracker.5ufqf.mongodb.net/expensesDB";
+// import { MongooseModule } from '@nestjs/mongoose';
+import { MongoModule } from './mongo/mongo.module';
 
 @Module({
     imports: [
         ConfigModule,
+        MongoModule,
         ExpensesModule,
-        MongooseModule.forRoot(DB_URL),
+        // MongooseModule.forRoot(DB_URL),
     ],
     controllers: [AppController],
     providers: [AppService],
