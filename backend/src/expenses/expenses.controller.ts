@@ -21,8 +21,9 @@ export class ExpensesController {
         @Query('expenseType') expenseType: ExpenseType,
         @Query('page') page: number = 1,
         @Query('limit') limit: number = 2,
+        @Query('sortBy') sortBy: string = 'newest',
     ) {
-        return this.expensesService.findAll(expenseType, +page, limit);
+        return this.expensesService.findAll(expenseType, +page, limit, sortBy);
     }
     // findAll(@Query('expenseType') expenseType: ExpenseType) {
     //     if (!expenseType) return 'This action returns all expense';
@@ -31,7 +32,7 @@ export class ExpensesController {
     // }
 
     @Get(':id')
-    findOne(@Param('id', ParseIntPipe) id: number) {
+    findOne(@Param('id') id: string) {
         return this.expensesService.findOne(id);
     }
 

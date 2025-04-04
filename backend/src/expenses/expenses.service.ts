@@ -3,7 +3,7 @@ import { ExpenseType } from './types';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Expense } from './schemas/expense.schema';
-import { Model } from 'mongoose';
+import { Model, FilterQuery, SortOrder } from 'mongoose';
 
 @Injectable()
 export class ExpensesService {
@@ -19,60 +19,99 @@ export class ExpensesService {
         { id: 5, name: 'Netflix Subscription', amount: 120, category: 'entertainment', isRecurring: true, createdAt: "2nd April, 2025" },
     ];
 
-    // findAll(expenseType: ExpenseType) {
-    //     if (!expenseType) {
-    //         return this.expenses;
-    //     }
-    //     if (expenseType !== 'recurring' && expenseType !== 'non-recurring') {
-    //         throw new NotFoundException('Invalid expense type!');
-    //     }
-    //     const isRecurring = expenseType === 'recurring';
-    //     const expensesToReturn = this.expenses.filter((expense) => expense.isRecurring === isRecurring);
-    //     if (expensesToReturn.length === 0) {
-    //         throw new NotFoundException(`You don't have any ${expenseType} expenses`);
-    //     }
-    //     return expensesToReturn;
-    // }
+    private getPaginationMeta(totalExpenses: number, page: number, limit: number, sortBy: string, expenseType: string | undefined) {
+        const sort = sortBy === 'oldest' ? `&sortBy=oldest` : ``;
 
-    private async getExpenses(expenseType?: ExpenseType) {
-        if (expenseType === 'recurring' || expenseType === 'non-recurring') {
-            return this.expenses.filter((expense) => expense.isRecurring === (expenseType === 'recurring'));
-        }
-        return await this.expenseModel.find().exec();
-        // return this.expenses;
-    }
-
-    private getPaginationMeta(expenses: any[], page: number, limit: number) {
-        const totalPages = Math.ceil(expenses.length / limit);
+        let expenseTypeInQuery = expenseType === 'recurring' || expenseType === 'non-recurring' ? `&expenseType=${expenseType}` : ``;
+        const totalPages = Math.ceil(totalExpenses / limit);
         return {
-            totalExpenses: expenses.length,
+            totalExpenses: totalExpenses,
             currentPage: page,
             totalPages,
-            nextPage: totalPages > page ? `/expenses?page=${page + 1}&limit=${limit}` : null,
-            prevPage: page > 1 ? `/expenses?page=${page - 1}&limit=${limit}` : null,
+            nextPage: totalPages > page ? `/expenses?${sort}${expenseTypeInQuery}&page=${page + 1}&limit=${limit}` : null,
+            prevPage: page > 1 ? `/expenses?${sort}${expenseTypeInQuery}&page=${page - 1}&limit=${limit}` : null,
         };
     }
 
-    async findAll(expenseType: ExpenseType, page: number = 1, limit: number = 2) {
-        // return this.expenseModel.find().exec();
-        const expenses: any = await this.getExpenses(expenseType);
-        console.log("Expenses: ", expenses)
-        if (expenses.length === 0) {
-            throw new NotFoundException(`You don't have any expenses`);
+    async findAll(expenseType?: ExpenseType, page: number = 1, limit: number = 10, sortBy: string = 'newest') { // Increased default limit
+        page = Math.max(1, Math.floor(page));
+        limit = Math.max(1, Math.floor(limit));
+
+        const query: FilterQuery<Expense> = {};
+
+        if (expenseType === 'recurring') {
+            query.isRecurring = true;
+        } else if (expenseType === 'non-recurring') {
+            query.isRecurring = false;
+        } else if (expenseType && expenseType !== 'recurring' && expenseType !== 'non-recurring') {
+            throw new BadRequestException(`Invalid expense type: ${expenseType}`);
         }
-        const paginatedExpenses = expenses.slice((page - 1) * limit, page * limit);
-        const message = expenseType ? `Expenses of type ${expenseType} retrieved successfully` : 'Expenses retrieved successfully';
-        return {
-            message,
-            expenses: paginatedExpenses,
-            ...this.getPaginationMeta(expenses, page, limit),
-        };
+
+        // Define sorting (e.g., newest first)
+        // const sort = { createdAt: -1 };
+        const sort: { [key: string]: SortOrder } = { createdAt: sortBy === 'oldest' ? 1 : -1 };
+        // const sort = 'createdAt -1';
+
+        const skip = (page - 1) * limit;
+
+        try {
+            const [paginatedExpenses, totalExpenses] = await Promise.all([
+                this.expenseModel
+                    .find(query)
+                    .select('-__v')
+                    .sort(sort)
+                    .skip(skip)
+                    .limit(limit)
+                    .exec(),
+                this.expenseModel.countDocuments(query).exec(),
+            ]);
+
+            if (totalExpenses === 0) {
+                const typeMessage = expenseType ? `of type '${expenseType}' ` : '';
+                // Use NotFoundException if no documents match the query *at all*
+                throw new NotFoundException(`No expenses ${typeMessage}found.`);
+                // Alternatively, you could return an empty list with metadata:
+                // return {
+                //     message: `No expenses ${typeMessage}found.`,
+                //     expenses: [],
+                //     ...this.getPaginationMeta(0, page, limit),
+                // };
+            }
+
+            const paginationMeta = this.getPaginationMeta(totalExpenses, page, limit, sortBy, expenseType);
+
+            if (page > paginationMeta.totalPages) {
+                throw new NotFoundException(`Invalid page number. Total pages: ${paginationMeta.totalPages}`);
+            }
+
+
+            const message = expenseType
+                ? `Expenses of type '${expenseType}' retrieved successfully`
+                : 'Expenses retrieved successfully';
+
+            return {
+                message,
+                expenses: paginatedExpenses,
+                ...paginationMeta,
+            };
+        } catch (error) {
+            if (error instanceof NotFoundException) {
+                throw error;
+            }
+            console.error("Error fetching expenses:", error);
+            throw new BadRequestException('Could not retrieve expenses.'); // Or InternalServerErrorException
+        }
     }
 
-    findOne(id: number) {
-        const expense = this.expenses.find((expense) => expense.id === id);
+    async findOne(id: string) {
+        if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+            throw new BadRequestException(`Invalid ID format: ${id}`);
+        }
+
+        const expense = await this.expenseModel.findById(id).select('-__v').exec();
+
         if (!expense) {
-            throw new NotFoundException(`Expense with id- ${id} not found`);
+            throw new NotFoundException(`Expense with id ${id} not found`);
         }
         return {
             message: 'Expense found successfully',
@@ -81,24 +120,14 @@ export class ExpensesService {
     }
 
     async create(expense: CreateExpenseDto) {
-        // if (!expense.name || !expense.category || !expense.amount) {
-        //     throw new BadRequestException('Name, Category and amount are required fields');
-        // }
-        // const newId = this.expenses.reduce((max, user) => Math.max(max, user.id), 0) + 1;
-        // const newExpense = {
-        //     id: newId,
-        //     ...expense,
-        //     isRecurring: expense.isRecurring ? true : false,
-        //     createdAt: '4th April, 2025',
-        // };
-        // this.expenses.push(newExpense);
         const newExpense = await this.expenseModel.create(expense);
         return {
             message: 'Expense created successfully',
-            newExpense: newExpense,
+            newExpenseId: newExpense._id,
             // newExpenseId: newId,
         };
     }
 
 
 }
+
