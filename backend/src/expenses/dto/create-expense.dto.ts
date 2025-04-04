@@ -10,11 +10,14 @@ function isMongoId(validationOptions?: ValidationOptions) {
             options: validationOptions,
             validator: {
                 validate(value: any) {
+                    if (value === undefined || !value) {
+                        return false;
+                    }
                     const regex = /^[0-9a-fA-F]{24}$/;
                     return regex.test(value.toString());
                 },
                 defaultMessage() {
-                    return 'must be a valid MongoDB ObjectId';
+                    return 'categoryId must be a valid MongoDB ObjectId';
                 }
             }
         });
@@ -29,9 +32,13 @@ export class CreateExpenseDto {
     // @IsString()
     // @IsNotEmpty()
     // category: string;
-    @isMongoId()
+    // @isMongoId()
+    // @IsNotEmpty()
+    // categoryId: ObjectId;
+
+    @IsString()
     @IsNotEmpty()
-    category: ObjectId;
+    categoryName: string;
 
     @IsBoolean()
     @IsNotEmpty()

@@ -9,17 +9,17 @@ export class Expense {
     //   @Prop()
     _id: ObjectId;
 
-    @Prop({ type: SchemaTypes.ObjectId, ref: 'Category', required: true })
-    category: ObjectId;
+    // @Prop({ type: SchemaTypes.ObjectId, ref: 'Category', required: true })
+    // categoryId: ObjectId;
+
+    @Prop({ required: true })
+    categoryName: string;
 
     @Prop({ required: true })
     name: string;
 
     @Prop({ required: true })
     amount: number;
-
-    // @Prop({ required: true })
-    // category: string;
 
     @Prop({ required: true })
     isRecurring: boolean;

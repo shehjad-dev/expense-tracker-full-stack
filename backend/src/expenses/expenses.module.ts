@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ExpensesController } from './expenses.controller';
 import { ExpensesService } from './expenses.service';
 import { Expense, ExpenseSchema } from './schemas/expense.schema';
+import { Category, CategorySchema } from '../categories/schemas/category.schema'
 import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
@@ -10,6 +11,10 @@ import { MongooseModule } from '@nestjs/mongoose';
             {
                 name: Expense.name,
                 schema: ExpenseSchema
+            },
+            {
+                name: Category.name,
+                schema: CategorySchema
             }
         ])
     ],

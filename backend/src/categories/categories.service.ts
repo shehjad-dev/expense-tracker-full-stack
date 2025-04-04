@@ -73,7 +73,7 @@ export class CategoriesService {
         } catch (error) {
             console.error('Error updating category:', error.code);
             if (error.code === 11000) {
-                throw new HttpException('Cannot update Duplicate Category', 409);
+                throw new HttpException('A category with this name already exists!', 409);
             }
             throw new BadRequestException('Failed to update category');
         }
