@@ -25,6 +25,9 @@ export class Expense {
     isRecurring: boolean;
 
     @Prop({ required: false })
+    recurringInterval?: 'daily' | 'weekly' | 'monthly';
+
+    @Prop({ required: false })
     createdAt: Date;
 
     @Prop({ required: false })

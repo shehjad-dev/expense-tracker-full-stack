@@ -44,6 +44,9 @@ export class CreateExpenseDto {
     @IsNotEmpty()
     isRecurring: boolean;
 
+    // @IsString()
+    recurringInterval?: 'daily' | 'weekly' | 'monthly';
+
     @IsNotEmpty()
     @IsNumber()
     @IsPositive()

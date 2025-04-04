@@ -192,6 +192,9 @@ export class ExpensesService {
     // }
 
     async create(expense: CreateExpenseDto) {
+        if (expense.isRecurring && !expense.recurringInterval) {
+            throw new BadRequestException('Recurring interval is required for recurring expenses.');
+        }
         const session = await this.connection.startSession(); // Fixed session start
         session.startTransaction();
 
