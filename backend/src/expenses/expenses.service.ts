@@ -1,9 +1,16 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { ExpenseType } from './types';
 import { CreateExpenseDto } from './dto/create-expense.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Expense } from './schemas/expense.schema';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class ExpensesService {
+    constructor(
+        @InjectModel(Expense.name) private expenseModel: Model<Expense>,
+    ) { }
+
     private expenses: any[] = [
         { id: 1, name: 'Groceries', amount: 2000, category: 'family', isRecurring: false, createdAt: "2nd March, 2025" },
         { id: 2, name: 'Electricity', amount: 1400, category: 'family', isRecurring: true, createdAt: "4th March, 2025" },
@@ -27,11 +34,12 @@ export class ExpensesService {
     //     return expensesToReturn;
     // }
 
-    private getExpenses(expenseType?: ExpenseType) {
+    private async getExpenses(expenseType?: ExpenseType) {
         if (expenseType === 'recurring' || expenseType === 'non-recurring') {
             return this.expenses.filter((expense) => expense.isRecurring === (expenseType === 'recurring'));
         }
-        return this.expenses;
+        return await this.expenseModel.find().exec();
+        // return this.expenses;
     }
 
     private getPaginationMeta(expenses: any[], page: number, limit: number) {
@@ -45,10 +53,12 @@ export class ExpensesService {
         };
     }
 
-    findAll(expenseType: ExpenseType, page: number = 1, limit: number = 2) {
-        const expenses = this.getExpenses(expenseType);
+    async findAll(expenseType: ExpenseType, page: number = 1, limit: number = 2) {
+        // return this.expenseModel.find().exec();
+        const expenses: any = await this.getExpenses(expenseType);
+        console.log("Expenses: ", expenses)
         if (expenses.length === 0) {
-            throw new NotFoundException(`You don't have any ${expenseType} expenses`);
+            throw new NotFoundException(`You don't have any expenses`);
         }
         const paginatedExpenses = expenses.slice((page - 1) * limit, page * limit);
         const message = expenseType ? `Expenses of type ${expenseType} retrieved successfully` : 'Expenses retrieved successfully';
@@ -70,21 +80,23 @@ export class ExpensesService {
         };
     }
 
-    create(expense: CreateExpenseDto) {
+    async create(expense: CreateExpenseDto) {
         // if (!expense.name || !expense.category || !expense.amount) {
         //     throw new BadRequestException('Name, Category and amount are required fields');
         // }
-        const newId = this.expenses.reduce((max, user) => Math.max(max, user.id), 0) + 1;
-        const newExpense = {
-            id: newId,
-            ...expense,
-            isRecurring: expense.isRecurring ? true : false,
-            createdAt: '4th April, 2025',
-        };
-        this.expenses.push(newExpense);
+        // const newId = this.expenses.reduce((max, user) => Math.max(max, user.id), 0) + 1;
+        // const newExpense = {
+        //     id: newId,
+        //     ...expense,
+        //     isRecurring: expense.isRecurring ? true : false,
+        //     createdAt: '4th April, 2025',
+        // };
+        // this.expenses.push(newExpense);
+        const newExpense = await this.expenseModel.create(expense);
         return {
             message: 'Expense created successfully',
-            newExpenseId: newId,
+            newExpense: newExpense,
+            // newExpenseId: newId,
         };
     }
 
