@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException, HttpException } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { ExpenseType } from './types';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { InjectModel, InjectConnection } from '@nestjs/mongoose';
@@ -15,13 +16,73 @@ export class ExpensesService {
         @InjectConnection() private readonly connection: Connection
     ) { }
 
-    // private expenses: any[] = [
-    //     { id: 1, name: 'Groceries', amount: 2000, category: 'family', isRecurring: false, createdAt: "2nd March, 2025" },
-    //     { id: 2, name: 'Electricity', amount: 1400, category: 'family', isRecurring: true, createdAt: "4th March, 2025" },
-    //     { id: 3, name: 'Books', amount: 300, category: 'studies', isRecurring: false, createdAt: "9th March, 2025" },
-    //     { id: 4, name: 'Uber Cost', amount: 220, category: 'work', isRecurring: false, createdAt: "1st April, 2025" },
-    //     { id: 5, name: 'Netflix Subscription', amount: 120, category: 'entertainment', isRecurring: true, createdAt: "2nd April, 2025" },
-    // ];
+    // @Cron(CronExpression.EVERY_30_SECONDS)
+    @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+    async handleRecurringExpenses() {
+        console.log('Checking for recurring expenses...');
+        const today = new Date();
+        today.setUTCHours(0, 0, 0, 0); // Use UTC to avoid timezone issues
+        const todayEnd = new Date(today);
+        todayEnd.setUTCHours(23, 59, 59, 999);
+
+        const recurringExpenses = await this.expenseModel
+            .find({
+                isRecurring: true,
+                isOriginal: true,
+                nextRecurrenceDate: { $gte: today, $lte: todayEnd }
+            })
+            .exec();
+
+        console.log(`Found ${recurringExpenses.length} recurring expenses`);
+
+        const errors: string[] = [];
+
+        for (const expense of recurringExpenses) {
+            try {
+                if (!expense.nextRecurrenceDate) {
+                    errors.push(`Expense ${expense.name} has no nextRecurrenceDate; skipping`);
+                    continue;
+                }
+
+                const newExpense = {
+                    ...expense.toObject(),
+                    _id: undefined,
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                    isOriginal: false,
+                    nextRecurrenceDate: undefined
+                };
+                await this.expenseModel.create(newExpense);
+                console.log(`Created new recurring expense for ${expense.name}`);
+
+                const nextDate = new Date(expense.nextRecurrenceDate);
+                switch (expense.recurringInterval) {
+                    case 'daily':
+                        nextDate.setDate(nextDate.getDate() + 1);
+                        break;
+                    case 'weekly':
+                        nextDate.setDate(nextDate.getDate() + 7);
+                        break;
+                    case 'monthly':
+                        const targetDay = nextDate.getDate();
+                        const nextMonth = nextDate.getMonth() + 1;
+                        const nextYear = nextDate.getFullYear();
+                        nextDate.setMonth(nextMonth);
+                        const lastDayOfNextMonth = new Date(nextYear, nextMonth, 0).getDate();
+                        nextDate.setDate(Math.min(targetDay, lastDayOfNextMonth));
+                        break;
+                }
+                expense.nextRecurrenceDate = nextDate;
+                await expense.save();
+            } catch (error) {
+                errors.push(`Failed to process expense ${expense.name}: ${error.message}`);
+            }
+        }
+
+        if (errors.length > 0) {
+            throw new Error(`Cron job completed with errors: ${errors.join('; ')}`);
+        }
+    }
 
     private getPaginationMeta(totalExpenses: number, page: number, limit: number, sortBy: string, expenseType: string | undefined) {
         const sort = sortBy === 'oldest' ? `&sortBy=oldest` : ``;
@@ -37,7 +98,7 @@ export class ExpensesService {
         };
     }
 
-    async findAll(expenseType?: ExpenseType, page: number = 1, limit: number = 10, sortBy: string = 'newest') { // Increased default limit
+    async findAll(expenseType?: ExpenseType, page: number = 1, limit: number = 2, sortBy: string = 'newest') { // Increased default limit
         page = Math.max(1, Math.floor(page));
         limit = Math.max(1, Math.floor(limit));
 
@@ -134,63 +195,6 @@ export class ExpensesService {
         };
     }
 
-    // async create(expense: CreateExpenseDto) {
-    //     try {
-    //         const newExpense = await this.expenseModel.create(expense);
-    //         return {
-    //             message: 'Expense created successfully',
-    //             newExpenseId: newExpense._id,
-    //             // newExpenseId: newId,
-    //         };
-    //     } catch (err) {
-    //         console.log(`Error222: `, err);
-    //         throw new HttpException(`Error happened`, 404);
-    //     }
-    // }
-
-    // async create(expense: CreateExpenseDto) {
-    //     try {
-    //         const category = await this.categoryModel.findOne({ name: expense.categoryName });
-    //         console.log("Cattttt: ", category)
-    //         // throw new HttpException(`Error happened`, 404);
-
-
-    //         if (!category) {
-    //             const session = await this.expenseModel.startSession();
-    //             try {
-    //                 await session.withTransaction(async () => {
-    //                     const newCategoryDbResp = await this.categoryModel.create([{ name: expense.categoryName }], { session });
-    //                     const newCategory = newCategoryDbResp[0];
-    //                     console.log("NewCATA: ", newCategory)
-
-    //                     if (!newCategory || !newCategory._id) {
-    //                         throw new HttpException(`Could not create category`, 404);
-    //                     }
-    //                     const newExpense = await this.expenseModel.create({ ...expense, categoryName: newCategory.name }, { session });
-    //                     return {
-    //                         message: 'Expense created successfully',
-    //                         newExpenseId: newExpense[0]._id,
-    //                     };
-    //                 });
-    //             } catch (err) {
-    //                 console.log(`Error creating category and expense: `, err);
-    //                 throw new HttpException(`Error happened`, 404);
-    //             } finally {
-    //                 await session.endSession();
-    //             }
-    //         } else {
-    //             const newExpense = await this.expenseModel.create(expense);
-    //             return {
-    //                 message: 'Expense created successfully',
-    //                 newExpenseId: newExpense._id,
-    //             };
-    //         }
-    //     } catch (err) {
-    //         console.log(`Error creating expense: `, err);
-    //         throw new HttpException(`Error happened`, 404);
-    //     }
-    // }
-
     async create(expense: CreateExpenseDto) {
         if (expense.isRecurring && !expense.recurringInterval) {
             throw new BadRequestException('Recurring interval is required for recurring expenses.');
@@ -215,7 +219,7 @@ export class ExpensesService {
                 }
 
                 const [newExpense] = await this.expenseModel.create(
-                    [{ ...expense, categoryName: newCategory[0].name }],
+                    [{ ...expense, categoryName: newCategory[0].name, isOriginal: expense.isOriginal }],
                     { session }
                 );
 
@@ -226,7 +230,7 @@ export class ExpensesService {
                 };
             } else {
                 const [newExpense] = await this.expenseModel.create(
-                    [expense],
+                    [{ ...expense, isOriginal: expense.isOriginal }],
                     { session } // Use session here too
                 );
 
@@ -239,10 +243,14 @@ export class ExpensesService {
         } catch (err) {
             await session.abortTransaction();
             console.error('Transaction error:', err);
+            if (err.message === 'Recurring interval is required for recurring expenses') {
+                throw new BadRequestException('Recurring interval is required for recurring expenses.');
+            }
             throw new HttpException(
                 err.message || 'Database operation failed',
                 err.status || 500
             );
+
         } finally {
             session.endSession();
         }
