@@ -8,6 +8,7 @@ import { ExpensesModule } from './expenses/expenses.module';
 import { MongoModule } from './mongo/mongo.module';
 import { CategoriesModule } from './categories/categories.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { CronModule } from './cron/cron.module';
 
 @Module({
     imports: [
@@ -15,7 +16,8 @@ import { ScheduleModule } from '@nestjs/schedule';
         MongoModule,
         ExpensesModule,
         CategoriesModule,
-        ScheduleModule.forRoot()
+        ScheduleModule.forRoot(),
+        CronModule
         // MongooseModule.forRoot(DB_URL),
     ],
     controllers: [AppController],
