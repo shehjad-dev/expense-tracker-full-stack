@@ -19,6 +19,7 @@ import { MongooseModule } from '@nestjs/mongoose';
         ])
     ],
     controllers: [ExpensesController],
-    providers: [ExpensesService]
+    providers: [ExpensesService],
+    exports: [ExpensesService]
 })
 export class ExpensesModule { }

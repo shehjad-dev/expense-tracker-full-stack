@@ -1,0 +1,4 @@
+sl.no,categoryName,name,amount,isRecurring,recurringInterval,createdAt,updatedAt
+1,Family,Outing,600,true,weekly,2025-03-06T121519.553Z,2025-04-06T121519.553Z
+2,Luxury,Netflix,2000,true,monthly,2025-03-31T121546.784Z,2025-04-06T121546.784Z       
+3,Luxury,Computer,80000,false,na,2025-03-21T121641.370Z,2025-04-06T121641.370Z

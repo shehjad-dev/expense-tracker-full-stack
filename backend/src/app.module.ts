@@ -9,6 +9,8 @@ import { MongoModule } from './mongo/mongo.module';
 import { CategoriesModule } from './categories/categories.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CronModule } from './cron/cron.module';
+import { RabbitMQModule } from './rabbitmq/rabbitmq.module';
+import { ConsumerModule } from './consumer/consumer.module';
 
 @Module({
     imports: [
@@ -17,8 +19,9 @@ import { CronModule } from './cron/cron.module';
         ExpensesModule,
         CategoriesModule,
         ScheduleModule.forRoot(),
-        CronModule
-        // MongooseModule.forRoot(DB_URL),
+        CronModule,
+        RabbitMQModule,
+        ConsumerModule
     ],
     controllers: [AppController],
     providers: [AppService],

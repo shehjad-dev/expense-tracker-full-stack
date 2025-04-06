@@ -16,8 +16,8 @@ export class ExpensesService {
         @InjectConnection() private readonly connection: Connection
     ) { }
 
-    // @Cron(CronExpression.EVERY_30_SECONDS)
-    @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+    // @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+    @Cron(CronExpression.EVERY_30_SECONDS)
     async handleRecurringExpenses() {
         console.log('Checking for recurring expenses...');
         const today = new Date();
@@ -273,6 +273,27 @@ export class ExpensesService {
             message: 'Expense deleted successfully',
             deletedExpense: deletedExpense,
         };
+    }
+
+    async findByDateRange(startDate: Date, endDate: Date): Promise<Expense[]> {
+        const expenses = await this.expenseModel
+            .find({
+                createdAt: {
+                    $gte: startDate,
+                    $lte: endDate,
+                },
+            })
+            .exec();
+
+        return expenses;
+        // return this.expenseModel
+        //     .find({
+        //         date: {
+        //             $gte: startDate,
+        //             $lte: endDate,
+        //         },
+        //     })
+        //     .exec();
     }
 
 
