@@ -23,7 +23,7 @@ export class ExpensesController {
     findAll(
         @Query('expenseType') expenseType: ExpenseType,
         @Query('page') page: number = 1,
-        @Query('limit') limit: number = 2,
+        @Query('limit') limit: number = 5,
         @Query('sortBy') sortBy: string = 'newest',
     ) {
         return this.expensesService.findAll(expenseType, +page, limit, sortBy);

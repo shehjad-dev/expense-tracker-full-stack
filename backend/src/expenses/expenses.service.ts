@@ -17,7 +17,7 @@ export class ExpensesService {
     ) { }
 
     // @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
-    @Cron(CronExpression.EVERY_30_SECONDS)
+    @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
     async handleRecurringExpenses() {
         console.log('Checking for recurring expenses...');
         const today = new Date();
@@ -98,7 +98,7 @@ export class ExpensesService {
         };
     }
 
-    async findAll(expenseType?: ExpenseType, page: number = 1, limit: number = 2, sortBy: string = 'newest') { // Increased default limit
+    async findAll(expenseType?: ExpenseType, page: number = 1, limit: number = 5, sortBy: string = 'newest') { // Increased default limit
         page = Math.max(1, Math.floor(page));
         limit = Math.max(1, Math.floor(limit));
 

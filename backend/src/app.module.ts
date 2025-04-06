@@ -19,9 +19,9 @@ import { ConsumerModule } from './consumer/consumer.module';
         ExpensesModule,
         CategoriesModule,
         ScheduleModule.forRoot(),
-        CronModule,
-        RabbitMQModule,
-        ConsumerModule
+        // CronModule,
+        // RabbitMQModule,
+        // ConsumerModule
     ],
     controllers: [AppController],
     providers: [AppService],
