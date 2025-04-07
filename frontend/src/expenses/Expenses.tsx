@@ -101,9 +101,9 @@ const Expenses = () => {
     };
 
     return (
-        <div className="h-full w-full py-[60px] px-[100px] relative">
-            <div className="flex justify-between items-center gap-4 sticky top-0 bg-background z-10 py-4">
-                <h4 className="text-2xl font-medium">Expenses</h4>
+        <div className="h-full w-full md:py-[60px] px-[24px] py-[18px] md:px-[100px] relative">
+            <div className="flex justify-between items-center gap-4 sticky top-0 bg-background z-10 py-4 mb-2">
+                <h4 className="text-lg md:text-2xl font-medium">Expenses</h4>
             </div>
 
             {/* Chart Section */}
@@ -191,7 +191,7 @@ const Expenses = () => {
             </div>
 
             {/* Pagination */}
-            <div className="flex items-center justify-between mt-4 pb-[50px]">
+            <div className="flex md:flex-row flex-col-reverse gap-2 items-center justify-between mt-4 pb-[50px]">
                 <CreateNew />
                 <div className="w-fit gap-3 flex items-center">
                     <Button

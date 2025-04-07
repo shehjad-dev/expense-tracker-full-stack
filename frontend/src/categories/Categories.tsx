@@ -44,9 +44,9 @@ const Categories = () => {
     const totalCategories = categories.length;
 
     return (
-        <div className="h-full w-full py-[60px] px-[100px] relative">
+        <div className="h-full w-full md:py-[60px] px-[24px] py-[18px] md:px-[100px] relative">
             <div className="flex justify-between items-center gap-4 sticky top-0 bg-background z-10 py-4">
-                <h4 className="text-2xl font-medium">Categories</h4>
+                <h4 className="text-lg md:text-2xl font-medium">Categories</h4>
             </div>
 
             <div className="mt-4 flex flex-row items-center justify-between">
