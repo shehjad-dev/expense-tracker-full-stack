@@ -10,7 +10,8 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
     private readonly url: string;
 
     constructor(private readonly configService: ConfigService) {
-        this.url = this.configService.get('RABBITMQ_URL') || 'amqp://localhost:5672';
+        this.url = this.configService.rabbitMqUrl || 'amqp://localhost:5672';
+        // this.url = this.configService.get('RABBITMQ_URL') || 'amqp://localhost:5672';
     }
 
     async onModuleInit() {

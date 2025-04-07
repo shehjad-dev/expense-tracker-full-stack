@@ -15,7 +15,7 @@ export class ConsumerService implements OnModuleInit, OnModuleDestroy {
         private readonly configService: ConfigService,
         private readonly expensesService: ExpensesService,
     ) {
-        this.url = this.configService.get('RABBITMQ_URL') || 'amqp://localhost:5672';
+        this.url = this.configService.rabbitMqUrl || 'amqp://localhost:5672';
     }
 
     async onModuleInit() {

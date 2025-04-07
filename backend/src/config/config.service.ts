@@ -27,15 +27,7 @@ export class ConfigService {
         return this.get('MONGO_DB_NAME');
     }
 
-    //   get openAiApiKey(): string {
-    //     return this.get('OPENAI_API_KEY');
-    //   }
-
-    //   get resendApiKey(): string {
-    //     return this.get('RESEND_API_KEY');
-    //   }
-
-    //   get clerkSigningSecret(): string {
-    //     return this.get('CLERK_SIGNING_SECRET');
-    //   }
+    get rabbitMqUrl(): string {
+        return this.get('RABBITMQ_URL');
+    }
 }
