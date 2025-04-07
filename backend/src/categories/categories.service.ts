@@ -66,12 +66,19 @@ export class CategoriesService {
     async update(id: string, category: CreateCategoryDto) {
         try {
             const updatedCategory = await this.expenseModel.findByIdAndUpdate(id, category, { new: true });
+            console.log('Updated category:', updatedCategory);
+            if (!updatedCategory) {
+                throw new Error('Category Not found!');
+            }
             return {
                 message: 'Category updated successfully',
                 updatedCategory: updatedCategory,
             };
         } catch (error) {
-            console.error('Error updating category:', error.code);
+            if (error.message === 'Category Not found!') {
+                throw new HttpException('Category Not found!', 404);
+            }
+            console.error('Error updating category:', error.message);
             if (error.code === 11000) {
                 throw new HttpException('A category with this name already exists!', 409);
             }

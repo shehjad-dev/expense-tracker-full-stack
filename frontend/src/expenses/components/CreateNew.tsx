@@ -91,7 +91,7 @@ const CreateNew = () => {
             <DialogTrigger asChild>
                 <Button>
                     <PlusIcon className="w-6 h-6" />
-                    <span className="ml-2">Add Expense</span>
+                    <span>Add Expense</span>
                 </Button>
             </DialogTrigger>
             <DialogContent className="max-w-6xl">
