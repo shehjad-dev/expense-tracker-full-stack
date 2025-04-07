@@ -206,7 +206,7 @@ export class ExpensesService {
             const category = await this.categoryModel.findOne({
                 name: expense.categoryName
             }).session(session); // Include session in query
-            console.log("Found category: ", category)
+            // console.log("Found category: ", category)
 
             if (!category) {
                 const newCategory = await this.categoryModel.create(

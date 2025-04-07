@@ -7,20 +7,24 @@ import Dashboard from './Dashboard.tsx';
 import Expenses from './expenses/Expenses.tsx';
 import Categories from './categories/Categories.tsx';
 import { ThemeProvider } from './components/theme-provider.tsx';
+import { Provider } from 'react-redux';
+import { store } from './store.ts';
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
-        <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-            <BrowserRouter>
-                <Routes>
-                    <Route path="/" element={<Dashboard />} >
-                        <Route index element={<Expenses />} />
-                        <Route path='categories' element={<Categories />} />
-                        {/* <Route path="settings" element={<Settings />} /> */}
-                    </Route>
-                    {/* <Route path="/" element={<App />} /> */}
-                </Routes>
-            </BrowserRouter>
-        </ThemeProvider>
+        <Provider store={store}>
+            <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+                <BrowserRouter>
+                    <Routes>
+                        <Route path="/" element={<Dashboard />} >
+                            <Route index element={<Expenses />} />
+                            <Route path='categories' element={<Categories />} />
+                            {/* <Route path="settings" element={<Settings />} /> */}
+                        </Route>
+                        {/* <Route path="/" element={<App />} /> */}
+                    </Routes>
+                </BrowserRouter>
+            </ThemeProvider>
+        </Provider>
     </StrictMode>,
 )
