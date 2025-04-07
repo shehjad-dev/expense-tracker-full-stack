@@ -10,7 +10,8 @@ import { CategoriesModule } from './categories/categories.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CronModule } from './cron/cron.module';
 import { RabbitMQModule } from './rabbitmq/rabbitmq.module';
-import { ConsumerModule } from './consumer/consumer.module';
+import { ConsumerModule } from './rabbitmq/consumer/consumer.module';
+import { ProducerModule } from './rabbitmq/producer/producer.module';
 
 @Module({
     imports: [
@@ -21,7 +22,8 @@ import { ConsumerModule } from './consumer/consumer.module';
         ScheduleModule.forRoot(),
         CronModule,
         RabbitMQModule,
-        ConsumerModule
+        ProducerModule,
+        ConsumerModule,
     ],
     controllers: [AppController],
     providers: [AppService],

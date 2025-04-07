@@ -1,15 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { RabbitMQService } from 'src/rabbitmq/rabbitmq.service';
+import { ProducerService } from 'src/rabbitmq/producer/producer.service';
 
 @Injectable()
 export class CronJob {
     private readonly logger = new Logger(CronJob.name);
 
-    constructor(private readonly rabbitMQService: RabbitMQService) { }
+    constructor(private readonly producerService: ProducerService) { }
 
-    // @Cron(CronExpression.EVERY_5_SECONDS) || @Cron('0 0 1 * *')
-    @Cron(CronExpression.EVERY_5_SECONDS)
+    // @Cron('0 0 1 * *') // Runs monthly at 1 AM || @Cron(CronExpression.EVERY_5_SECONDS)
+    @Cron('0 0 1 * *')
     async handleCron() {
         this.logger.log('Monthly cron job started');
         const msg = {
@@ -17,9 +17,8 @@ export class CronJob {
             timestamp: new Date().toISOString(),
             text: 'This is a dummy payload',
         };
-
         try {
-            await this.rabbitMQService.sendToQueue(msg);
+            await this.producerService.sendToQueue(msg);
             this.logger.debug('Message successfully sent to RabbitMQ queue');
         } catch (error) {
             this.logger.error('Failed to send message to RabbitMQ', error);

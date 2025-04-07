@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { CronJob } from './cron.job';
-import { RabbitMQModule } from '../rabbitmq/rabbitmq.module';
+import { ProducerModule } from 'src/rabbitmq/producer/producer.module';
 
 @Module({
-    imports: [RabbitMQModule],
+    imports: [ProducerModule],
     providers: [CronJob],
 })
 export class CronModule { }
