@@ -1,0 +1,1 @@
+export const RABBITMQ_QUEUE_NAME = 'cron_queue';

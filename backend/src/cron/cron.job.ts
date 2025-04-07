@@ -6,8 +6,8 @@ import { CronService } from './cron.service';
 export class CronJob {
     constructor(private readonly cronService: CronService) { }
 
-    // @Cron(CronExpression.EVERY_5_SECONDS) // Run every 5 SECONDS
-    @Cron('0 0 1 * *') // Run every month on the 1st day at 00:00
+    // @Cron(CronExpression.EVERY_5_SECONDS) || @Cron('0 0 1 * *')
+    @Cron('0 0 1 * *')
     async handleCron() {
         await this.cronService.sendMessage();
     }

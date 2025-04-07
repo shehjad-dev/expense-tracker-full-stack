@@ -1,14 +1,26 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import * as amqp from 'amqplib';
-import { ConfigService } from '../config/config.service';
-import { ExpensesService } from '../expenses/expenses.service'; // Adjust path as needed
 import { stringify } from 'csv-stringify/sync';
+import { ConfigService } from 'src/config/config.service';
+import { RABBITMQ_QUEUE_NAME } from 'src/constants';
+import { ExpensesService } from 'src/expenses/expenses.service';
+
+interface Expense {
+    categoryName: string;
+    name: string;
+    amount: number;
+    isRecurring: boolean;
+    recurringInterval?: string;
+    createdAt: Date;
+    updatedAt: Date;
+}
 
 @Injectable()
 export class ConsumerService implements OnModuleInit, OnModuleDestroy {
+    private readonly logger = new Logger(ConsumerService.name);
     private connection: amqp.Connection;
     private channel: amqp.Channel;
-    private readonly queueName = 'cron_queue';
+    private readonly queueName = RABBITMQ_QUEUE_NAME;
     private readonly url: string;
 
     constructor(
@@ -24,61 +36,67 @@ export class ConsumerService implements OnModuleInit, OnModuleDestroy {
             this.channel = await this.connection.createChannel();
             await this.channel.assertQueue(this.queueName, { durable: true });
 
-            this.channel.consume(this.queueName, async (message) => {
-                if (message) {
-                    const payload = JSON.parse(message.content.toString());
-                    console.log('Consumer received message:', payload);
+            this.logger.log(`Connected to RabbitMQ and listening on queue: ${this.queueName}`);
 
-                    // Calculate the date range for the previous month in UTC
+            await this.channel.consume(this.queueName, async (message) => {
+                if (!message) {
+                    this.logger.warn('Received null message');
+                    return;
+                }
+
+                try {
+                    const payload = JSON.parse(message.content.toString());
+                    this.logger.debug('Received message', payload);
+
                     const now = new Date();
                     const year = now.getFullYear();
                     const month = now.getMonth();
-
-                    // Start of the previous month (e.g., March 1st, 2025)
                     const startOfLastMonth = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0));
-                    // End of the previous month (e.g., March 31st, 2025)
                     const endOfLastMonth = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
 
-                    console.log(
-                        'startOfLastMonth:',
-                        startOfLastMonth,
-                        'endOfLastMonth:',
-                        endOfLastMonth,
-                    );
-
-                    // Fetch expenses from MongoDB for the last month based on createdAt
                     const expenses = await this.expensesService.findByDateRange(
                         startOfLastMonth,
                         endOfLastMonth,
                     );
 
-                    console.log('expenses:', expenses);
-
                     if (expenses.length === 0) {
-                        console.log('No expenses found for the last month.');
+                        this.logger.log('No expenses found for the last month');
                         this.channel.ack(message);
                         return;
                     }
 
-                    // Convert expenses to CSV
                     const csv = this.generateCSV(expenses);
-                    console.log('Expenses CSV for last month -- :\n', csv, '\n ----- \n');
+                    this.logger.debug('Generated CSV for last month', csv);
 
-                    this.channel.ack(message); // Manually acknowledge the message
+                    this.channel.ack(message);
+                } catch (error) {
+                    this.logger.error('Error processing message', error);
+                    // Optionally nack/requeue based on your needs
+                    this.channel.nack(message, false, false); // Reject without requeueing
                 }
-            });
+            }, { noAck: false }); // Ensure manual acknowledgment
         } catch (error) {
-            console.error('Error initializing consumer:', error);
+            this.logger.error('Failed to initialize RabbitMQ consumer', error);
+            throw error;
         }
     }
 
     async onModuleDestroy() {
-        if (this.channel) await this.channel.close();
-        if (this.connection) await this.connection.close();
+        try {
+            if (this.channel) {
+                await this.channel.close();
+                this.logger.log('RabbitMQ channel closed');
+            }
+            if (this.connection) {
+                await this.connection.close();
+                this.logger.log('RabbitMQ connection closed');
+            }
+        } catch (error) {
+            this.logger.error('Error during shutdown', error);
+        }
     }
 
-    private generateCSV(expenses: any[]): string {
-        // Define CSV headers based on your Expense schema
+    private generateCSV(expenses: Expense[]): string {
         const headers = [
             'sl.no',
             'categoryName',
@@ -86,8 +104,6 @@ export class ConsumerService implements OnModuleInit, OnModuleDestroy {
             'amount',
             'isRecurring',
             'recurringInterval',
-            // 'nextRecurrenceDate',
-            // 'isOriginal',
             'createdAt',
             'updatedAt',
         ];
@@ -97,10 +113,8 @@ export class ConsumerService implements OnModuleInit, OnModuleDestroy {
             expense.categoryName,
             expense.name,
             expense.amount,
-            expense.isRecurring ? 'true' : 'false', // Convert boolean to string
-            expense.recurringInterval || 'n/a', // Handle optional field
-            // expense.nextRecurrenceDate ? expense.nextRecurrenceDate.toISOString() : '', // Handle optional Date
-            // expense.isOriginal ? 'true' : 'false', // Convert boolean to string
+            expense.isRecurring ? 'true' : 'false',
+            expense.recurringInterval || 'n/a',
             expense.createdAt.toISOString(),
             expense.updatedAt.toISOString(),
         ]);
