@@ -257,12 +257,86 @@ export class ExpensesService {
     }
 
     async update(id: string, expense: UpdateExpenseDto) {
-        const updatedExpense = await this.expenseModel.findByIdAndUpdate(id, expense, { new: true });
-        return {
-            message: 'Expense updated successfully',
-            updatedExpense: updatedExpense,
-        };
+        if (expense.isRecurring && !expense.recurringInterval) {
+            throw new BadRequestException('Recurring interval is required for recurring expenses.');
+        }
+        const session = await this.connection.startSession(); // Fixed session start
+        session.startTransaction();
+
+        // const updatedExpense = await this.expenseModel.findByIdAndUpdate(id, expense, { new: true });
+        // return {
+        //     message: 'Expense updated successfully',
+        //     updatedExpense: updatedExpense,
+        // };
+        try {
+            const category = await this.categoryModel.findOne({
+                name: expense.categoryName
+            }).session(session); // Include session in query
+            // console.log("Found category: ", category)
+
+            if (!category) {
+                const newCategory = await this.categoryModel.create(
+                    [{ name: expense.categoryName }],
+                    { session }
+                );
+
+                if (!newCategory[0]?._id) {
+                    throw new HttpException('Category creation failed', 500);
+                }
+
+                // const updatedExpense = await this.expenseModel.findByIdAndUpdate(id, expense, { new: true });
+                const updatedExpense = await this.expenseModel.findByIdAndUpdate(
+                    id,
+                    expense,
+                    { new: true, session }
+                );
+
+                console.log('Updated expense:', updatedExpense);
+
+                await session.commitTransaction();
+                return {
+                    message: 'Expense Updated successfully with new category.',
+                    updatedExpense: updatedExpense
+                };
+            } else {
+                const updatedExpense = await this.expenseModel.findByIdAndUpdate(
+                    id,
+                    expense,
+                    { new: true, session }
+                );
+                console.log('Updated expense:', updatedExpense);
+
+                await session.commitTransaction();
+                return {
+                    message: 'Expense updated successfully',
+                    updatedExpense: updatedExpense,
+                };
+            }
+        } catch (err) {
+            await session.abortTransaction();
+            console.error('Transaction error:', err);
+            if (err.message === 'Recurring interval is required for recurring expenses') {
+                throw new BadRequestException('Recurring interval is required for recurring expenses.');
+            }
+            throw new HttpException(
+                err.message || 'Database operation failed',
+                err.status || 500
+            );
+
+        } finally {
+            session.endSession();
+        }
     }
+    // async update(id: string, expense: UpdateExpenseDto) {
+    //     if (expense.isRecurring && !expense.recurringInterval) {
+    //         throw new BadRequestException('Recurring interval is required for recurring expenses.');
+    //     }
+    //     const updatedExpense = await this.expenseModel.findByIdAndUpdate(id, expense, { new: true });
+    //     return {
+    //         message: 'Expense updated successfully',
+    //         updatedExpense: updatedExpense,
+    //     };
+    // }
 
     async remove(id: string) {
         const deletedExpense = await this.expenseModel.findByIdAndDelete(id);
