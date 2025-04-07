@@ -9,7 +9,7 @@ export class CronJob {
     constructor(private readonly cronService: CronService) { }
 
     // @Cron(CronExpression.EVERY_5_SECONDS) || @Cron('0 0 1 * *')
-    @Cron(CronExpression.EVERY_5_SECONDS)
+    @Cron('0 0 1 * *')
     async handleCron() {
         this.logger.log('Monthly cron job started');
         try {

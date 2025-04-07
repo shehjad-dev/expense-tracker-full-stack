@@ -14,14 +14,18 @@ type Expense = {
     updatedAt: string;
 };
 
-type ExpensesResponse = {
-    message: string;
-    expenses: Expense[];
+type PaginatedMetaData = {
     totalExpenses: number;
     currentPage: number;
     totalPages: number;
     nextPage: string | null;
     prevPage: string | null;
+};
+
+type ExpensesResponse = {
+    message: string;
+    expenses: Expense[];
+    paginationMeta?: PaginatedMetaData;
 };
 
 type Category = {
@@ -85,11 +89,6 @@ type UpdateCategoryRequest = {
 type UpdateCategoryResponse = {
     message: string;
     updatedCategory: Category;
-};
-
-type CategoryError = {
-    statusCode: number;
-    message: string;
 };
 
 type DeleteCategoryResponse = {

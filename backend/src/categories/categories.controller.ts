@@ -11,36 +11,30 @@ import {
 } from '@nestjs/common';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { CategoriesService } from './categories.service';
+import { Logger } from '@nestjs/common';
 
 @Controller('categories')
 export class CategoriesController {
+    private readonly logger = new Logger(CategoriesController.name);
+
     constructor(private readonly categoriesService: CategoriesService) { }
 
     @Get()
     async findAll(@Query('sortBy') sortBy: string = 'newest') {
-        const categories = await this.categoriesService.findAll(sortBy);
-        return {
-            message: 'Categories found successfully',
-            categories: categories,
-        };
+        this.logger.debug(`Fetching all categories with sortBy=${sortBy}`);
+        return this.categoriesService.findAll(sortBy);
     }
 
     @Get(':id')
     async findOne(@Param('id') id: string) {
-        const category = await this.categoriesService.findOne(id);
-        return {
-            message: 'Category found successfully',
-            category: category,
-        };
+        this.logger.debug(`Fetching category with id=${id}`);
+        return this.categoriesService.findOne(id);
     }
 
     @Post()
     async create(@Body(ValidationPipe) category: CreateCategoryDto) {
-        const newCategoryId = await this.categoriesService.create(category);
-        return {
-            message: 'Category created successfully',
-            newCategoryId: newCategoryId,
-        };
+        this.logger.debug('Creating new category', category);
+        return this.categoriesService.create(category);
     }
 
     @Patch(':id')
@@ -48,19 +42,13 @@ export class CategoriesController {
         @Param('id') id: string,
         @Body(ValidationPipe) updatedCategory: CreateCategoryDto,
     ) {
-        const updatedCategoryData = await this.categoriesService.update(id, updatedCategory);
-        return {
-            message: 'Category updated successfully',
-            updatedCategory: updatedCategoryData,
-        };
+        this.logger.debug(`Updating category id=${id}`, updatedCategory);
+        return this.categoriesService.update(id, updatedCategory);
     }
 
     @Delete(':id')
     async remove(@Param('id') id: string) {
-        const deletedCategory = await this.categoriesService.remove(id);
-        return {
-            message: 'Category deleted successfully',
-            deletedCategory: deletedCategory,
-        };
+        this.logger.debug(`Deleting category id=${id}`);
+        return this.categoriesService.remove(id);
     }
 }

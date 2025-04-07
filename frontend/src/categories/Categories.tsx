@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import CreateCategory from './components/CreateCategory';
 import EditCategory from './components/EditCategory';
-import { Delete } from 'lucide-react';
+import { BugIcon, Delete, Loader2Icon, RabbitIcon } from 'lucide-react';
 import DeleteCategory from './components/DeleteCategory';
 
 type Category = {
@@ -24,9 +24,14 @@ const Categories = () => {
 
     if (isLoading) {
         return (
-            <div className="h-full w-full py-[60px] px-[100px] relative">
-                <h4 className="text-2xl font-medium">Categories</h4>
-                <div>Loading...</div>
+            <div className="h-full w-full md:py-[60px] px-[24px] py-[18px] md:px-[100px] relative">
+                <div className="flex justify-between items-center gap-4 sticky top-0 bg-background z-10 py-4 mb-2">
+                    <h4 className="text-lg md:text-2xl font-medium">Categories</h4>
+                </div>
+                <div className='flex flex-col mt-4 rounded-xl border-[1px] border-sidebar-border items-center justify-center w-ful h-[300px]'>
+                    <Loader2Icon className='w-10 h-10 text-rose-400 animate-spin' />
+                    <div className='text-lg font-medium mb-4'>Categories are loading..</div>
+                </div>
             </div>
         );
     }
@@ -34,8 +39,29 @@ const Categories = () => {
     if (error) {
         return (
             <div className="h-full w-full py-[60px] px-[100px] relative">
-                <h4 className="text-2xl font-medium">Categories</h4>
-                <div>Error loading categories</div>
+                <div className="flex justify-between items-center gap-4 sticky top-0 bg-background z-10 py-4">
+                    <h4 className="text-lg md:text-2xl font-medium">Categories</h4>
+                </div>
+                <div className='flex flex-col mt-4 rounded-xl border-[1px] border-sidebar-border items-center justify-center w-ful h-[300px]'>
+                    <BugIcon className='w-10 h-10 text-rose-400 animate-bounce' />
+                    <div className='text-lg font-medium mb-4'>Oops! Mr. Bug is here</div>
+                </div>
+            </div>
+        );
+    }
+
+    if (data?.categories.length === 0) {
+        return (
+            <div className="h-full w-full py-[60px] px-[100px] relative">
+                <div className="flex justify-between items-center gap-4 sticky top-0 bg-background z-10 py-4">
+                    <h4 className="text-lg md:text-2xl font-medium">Categories</h4>
+                </div>
+                <div className='flex flex-col mt-4 rounded-xl border-[1px] border-sidebar-border items-center justify-center w-ful h-[300px]'>
+                    <RabbitIcon className='w-10 h-10 text-rose-400 animate-bounce' />
+                    <div className='text-lg font-medium mb-4'>No categories found</div>
+
+                    <CreateCategory />
+                </div>
             </div>
         );
     }

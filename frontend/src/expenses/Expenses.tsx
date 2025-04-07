@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useGetExpensesQuery } from '../services/api';
 import {
     Table,
@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import ChartSection from './components/ChartSection';
-import { ChevronDownIcon, PencilIcon, TrashIcon } from 'lucide-react';
+import { BugIcon, ChevronDownIcon, Loader2Icon, RabbitIcon } from 'lucide-react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -39,15 +39,26 @@ const Expenses = () => {
     const [dataType, setDataType] = useState<'summary' | 'daily'>('summary');
     const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest');
     const [expenseType, setExpenseType] = useState<'recurring' | 'non-recurring' | undefined>(undefined);
+    const [clientExpenseType, setClientExpenseType] = useState<'recurring' | 'non-recurring' | undefined>(undefined);
     const limit = 5;
+
+    useEffect(() => {
+        setPage(1);
+        setExpenseType(clientExpenseType);
+    }, [clientExpenseType]);
 
     const { data, isLoading, error } = useGetExpensesQuery({ page, limit, sortBy, expenseType });
 
     if (isLoading) {
         return (
-            <div className="h-full w-full py-[60px] px-[100px] relative">
-                <h4 className="text-2xl font-medium">Expenses</h4>
-                <div>Loading...</div>
+            <div className="h-full w-full md:py-[60px] px-[24px] py-[18px] md:px-[100px] relative">
+                <div className="flex justify-between items-center gap-4 sticky top-0 bg-background z-10 py-4 mb-2">
+                    <h4 className="text-lg md:text-2xl font-medium">Expenses</h4>
+                </div>
+                <div className='flex flex-col mt-4 rounded-xl border-[1px] border-sidebar-border items-center justify-center w-ful h-[300px]'>
+                    <Loader2Icon className='w-10 h-10 text-rose-400 animate-spin' />
+                    <div className='text-lg font-medium mb-4'>Expenses are loading..</div>
+                </div>
             </div>
         );
     }
@@ -55,16 +66,20 @@ const Expenses = () => {
     if (error) {
         return (
             <div className="h-full w-full py-[60px] px-[100px] relative">
-                <h4 className="text-2xl font-medium">Expenses</h4>
-                <div>Error loading expenses</div>
+                <div className="flex justify-between items-center gap-4 sticky top-0 bg-background z-10 py-4">
+                    <h4 className="text-lg md:text-2xl font-medium">Expenses</h4>
+                </div>
+                <div className='flex flex-col mt-4 rounded-xl border-[1px] border-sidebar-border items-center justify-center w-ful h-[300px]'>
+                    <BugIcon className='w-10 h-10 text-rose-400 animate-bounce' />
+                    <div className='text-lg font-medium mb-4'>Oops! Mr. Bug is here</div>
+                </div>
             </div>
         );
     }
 
     const expenses = data?.expenses || [];
-    const currentPage = data?.currentPage || 1;
-    const totalPages = data?.totalPages || 1;
-    // const totalExpenses = data?.totalExpenses || 0;
+    const currentPage = data?.paginationMeta?.currentPage || 1;
+    const totalPages = data?.paginationMeta?.totalPages || 1;
 
     // Aggregate data based on dataType
     const chartData = dataType === 'summary'
@@ -107,11 +122,14 @@ const Expenses = () => {
             </div>
 
             {/* Chart Section */}
-            <ChartSection
-                chartData={chartData}
-                dataType={dataType}
-                setDataType={setDataType}
-            />
+            {expenses.length > 0 && (
+                <ChartSection
+                    chartData={chartData}
+                    dataType={dataType}
+                    setDataType={setDataType}
+                />
+            )}
+
 
             {/* Filters and Table Section */}
             <div className='mt-4 flex flex-row items-center justify-between'>
@@ -136,18 +154,18 @@ const Expenses = () => {
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline">
-                                {expenseType ? (expenseType === 'recurring' ? 'Recurring' : 'Non-Recurring') : 'All'}
+                                {clientExpenseType ? (clientExpenseType === 'recurring' ? 'Recurring' : 'Non-Recurring') : 'All'}
                                 <ChevronDownIcon className="ml-2 h-4 w-4" />
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                            <DropdownMenuItem onClick={() => setExpenseType(undefined)}>
+                            <DropdownMenuItem onClick={() => setClientExpenseType(undefined)}>
                                 All
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setExpenseType('recurring')}>
+                            <DropdownMenuItem onClick={() => setClientExpenseType('recurring')}>
                                 Recurring
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setExpenseType('non-recurring')}>
+                            <DropdownMenuItem onClick={() => setClientExpenseType('non-recurring')}>
                                 Non-Recurring
                             </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -155,64 +173,80 @@ const Expenses = () => {
                 </div>
             </div>
 
+
             <div className="mt-2 overflow-y-auto min-h-[220px] max-h-[600px]">
-                <Table className="rounded-lg overflow-hidden">
-                    <TableHeader>
-                        <TableRow className="bg-rose-50 dark:bg-rose-500/10">
-                            <TableHead>Name</TableHead>
-                            <TableHead>Category</TableHead>
-                            <TableHead>Amount</TableHead>
-                            <TableHead>Recurring</TableHead>
-                            <TableHead>Interval</TableHead>
-                            <TableHead>Created At</TableHead>
-                            <TableHead></TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {expenses.map((expense: Expense) => (
-                            <TableRow key={expense._id}>
-                                <TableCell className="font-medium">{expense.name}</TableCell>
-                                <TableCell>{expense.categoryName}</TableCell>
-                                <TableCell>${expense.amount}</TableCell>
-                                <TableCell>{expense.isRecurring ? 'Yes' : 'No'}</TableCell>
-                                <TableCell>{expense.isRecurring ? expense.recurringInterval || '-' : '-'}</TableCell>
-                                <TableCell>{new Date(expense.createdAt).toLocaleDateString()}</TableCell>
-                                <TableCell className='flex items-center gap-2'>
-                                    <EditExpense expense={expense} />
-                                    <DeleteExpense
-                                        expenseId={expense._id}
-                                        expenseName={expense.name}
-                                    />
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+                {
+                    expenses.length > 0 ? (
+                        <Table className="rounded-lg overflow-hidden">
+                            <TableHeader>
+                                <TableRow className="bg-rose-50 dark:bg-rose-500/10">
+                                    <TableHead>Name</TableHead>
+                                    <TableHead>Category</TableHead>
+                                    <TableHead>Amount</TableHead>
+                                    <TableHead>Recurring</TableHead>
+                                    <TableHead>Interval</TableHead>
+                                    <TableHead>Created At {`(MM/DD/YYYY)`}</TableHead>
+                                    <TableHead></TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {expenses.map((expense: Expense) => (
+                                    <TableRow key={expense._id}>
+                                        <TableCell className="font-medium">{expense.name}</TableCell>
+                                        <TableCell>{expense.categoryName}</TableCell>
+                                        <TableCell>${expense.amount}</TableCell>
+                                        <TableCell>{expense.isRecurring ? 'Yes' : 'No'}</TableCell>
+                                        <TableCell>{expense.isRecurring ? expense.recurringInterval || '-' : '-'}</TableCell>
+                                        <TableCell>{new Date(expense.createdAt).toLocaleDateString()}</TableCell>
+                                        <TableCell className='flex items-center gap-2'>
+                                            <EditExpense expense={expense} />
+                                            <DeleteExpense
+                                                expenseId={expense._id}
+                                                expenseName={expense.name}
+                                            />
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    ) : (
+                        <div className='flex flex-col mt-4 rounded-xl border-[1px] border-sidebar-border items-center justify-center w-ful h-[300px]'>
+                            <RabbitIcon className='w-10 h-10 text-rose-400 animate-bounce' />
+                            <div className='text-lg font-medium mb-4'>No expenses found</div>
+
+                            <CreateNew />
+                        </div>
+                    )
+                }
+
             </div>
 
             {/* Pagination */}
-            <div className="flex md:flex-row flex-col-reverse gap-2 items-center justify-between mt-4 pb-[50px]">
-                <CreateNew />
-                <div className="w-fit gap-3 flex items-center">
-                    <Button
-                        onClick={handlePrevPage}
-                        disabled={currentPage === 1}
-                        variant="outline"
-                    >
-                        Previous
-                    </Button>
-                    <span>
-                        Page {currentPage} of {totalPages}
-                    </span>
-                    <Button
-                        onClick={handleNextPage}
-                        disabled={currentPage === totalPages}
-                        variant="outline"
-                    >
-                        Next
-                    </Button>
+            {expenses.length > 0 && (
+                <div className="flex md:flex-row flex-col-reverse gap-2 items-center justify-between mt-4 pb-[50px]">
+                    <CreateNew />
+                    <div className="w-fit gap-3 flex items-center">
+                        <Button
+                            onClick={handlePrevPage}
+                            disabled={currentPage === 1}
+                            variant="outline"
+                        >
+                            Previous
+                        </Button>
+                        <span>
+                            Page {currentPage} of {totalPages}
+                        </span>
+                        <Button
+                            onClick={handleNextPage}
+                            disabled={currentPage === totalPages}
+                            variant="outline"
+                        >
+                            Next
+                        </Button>
+                    </div>
                 </div>
-            </div>
+            )}
+
         </div>
     );
 };

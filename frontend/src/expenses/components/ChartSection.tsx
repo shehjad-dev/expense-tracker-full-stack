@@ -69,7 +69,7 @@ const ChartSection = ({ dataType, setDataType, chartData }: Props) => {
                 </DropdownMenu>
             </div>
             <div className="mt-6">
-                <ChartContainer config={chartConfig} className="h-[300px]">
+                <ChartContainer config={chartConfig} className="h-[300px] md:w-fit w-[80vw]">
                     {chartType === 'bar' ? (
                         <BarChart data={chartData}>
                             <CartesianGrid strokeDasharray="3 3" />

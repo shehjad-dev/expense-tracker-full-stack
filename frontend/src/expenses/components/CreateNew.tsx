@@ -138,14 +138,17 @@ const CreateNew = () => {
                                         {categoriesLoading ? (
                                             <DropdownMenuItem disabled>Loading...</DropdownMenuItem>
                                         ) : (
-                                            categories.map((category) => (
-                                                <DropdownMenuItem
-                                                    key={category._id}
-                                                    onClick={() => setCategoryName(category.name)}
-                                                >
-                                                    {category.name}
-                                                </DropdownMenuItem>
-                                            ))
+                                            categories.length === 0 ? (
+                                                <DropdownMenuItem disabled>No categories found</DropdownMenuItem>
+                                            ) :
+                                                categories.map((category) => (
+                                                    <DropdownMenuItem
+                                                        key={category._id}
+                                                        onClick={() => setCategoryName(category.name)}
+                                                    >
+                                                        {category.name}
+                                                    </DropdownMenuItem>
+                                                ))
                                         )}
                                     </DropdownMenuContent>
                                 </DropdownMenu>
