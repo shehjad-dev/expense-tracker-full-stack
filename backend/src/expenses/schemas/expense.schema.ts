@@ -38,12 +38,10 @@ export class Expense {
 export const ExpenseSchema = SchemaFactory.createForClass(Expense);
 
 ExpenseSchema.pre<ExpenseDocument>('save', function (next) {
-    // Validate recurringInterval
     if (this.isRecurring && !this.recurringInterval) {
         return next(new Error('Recurring interval is required for recurring expenses'));
     }
 
-    // Set initial nextRecurrenceDate for new or updated recurring expenses
     if ((this.isNew || this.isModified('isRecurring')) && this.isRecurring && this.recurringInterval && !this.nextRecurrenceDate) {
         const baseDate = this.createdAt || new Date();
         const nextDate = new Date(baseDate);
@@ -71,55 +69,3 @@ ExpenseSchema.pre<ExpenseDocument>('save', function (next) {
 
     next();
 });
-
-
-
-// prev
-// import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-// import { ObjectId, SchemaTypes } from 'mongoose';
-// // import { HydratedDocument } from 'mongoose';
-
-// // export type CatDocument = HydratedDocument<Cat>;
-
-// @Schema({ collection: 'expenses', timestamps: true })
-// export class Expense {
-//     //   @Prop()
-//     _id: ObjectId;
-
-//     // @Prop({ type: SchemaTypes.ObjectId, ref: 'Category', required: true })
-//     // categoryId: ObjectId;
-
-//     @Prop({ required: true })
-//     categoryName: string;
-
-//     @Prop({ required: true })
-//     name: string;
-
-//     @Prop({ required: true })
-//     amount: number;
-
-//     @Prop({ required: true })
-//     isRecurring: boolean;
-
-//     @Prop({ required: false, enum: ['daily', 'weekly', 'monthly'] }) //required if isRecurring is true
-//     recurringInterval?: 'daily' | 'weekly' | 'monthly';
-
-//     @Prop({ required: true, default: true })
-//     isOriginal?: boolean;
-
-//     @Prop({ required: false })
-//     createdAt: Date;
-
-//     @Prop({ required: false })
-//     updatedAt: Date;
-// }
-
-// export const ExpenseSchema = SchemaFactory.createForClass(Expense);
-
-// ExpenseSchema.pre('save', function (next) {
-//     if (this.isRecurring && !this.recurringInterval) {
-//         next(new Error('Recurring interval is required for recurring expenses'));
-//     } else {
-//         next();
-//     }
-// });

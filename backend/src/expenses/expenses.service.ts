@@ -16,12 +16,11 @@ export class ExpensesService {
         @InjectConnection() private readonly connection: Connection
     ) { }
 
-    // @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
     @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
     async handleRecurringExpenses() {
         console.log('Checking for recurring expenses...');
         const today = new Date();
-        today.setUTCHours(0, 0, 0, 0); // Use UTC to avoid timezone issues
+        today.setUTCHours(0, 0, 0, 0);
         const todayEnd = new Date(today);
         todayEnd.setUTCHours(23, 59, 59, 999);
 
@@ -199,14 +198,14 @@ export class ExpensesService {
         if (expense.isRecurring && !expense.recurringInterval) {
             throw new BadRequestException('Recurring interval is required for recurring expenses.');
         }
-        const session = await this.connection.startSession(); // Fixed session start
+        const session = await this.connection.startSession();
         session.startTransaction();
 
         try {
             const category = await this.categoryModel.findOne({
                 name: expense.categoryName
-            }).session(session); // Include session in query
-            // console.log("Found category: ", category)
+            }).session(session);
+
 
             if (!category) {
                 const newCategory = await this.categoryModel.create(
@@ -231,7 +230,7 @@ export class ExpensesService {
             } else {
                 const [newExpense] = await this.expenseModel.create(
                     [{ ...expense, isOriginal: expense.isOriginal }],
-                    { session } // Use session here too
+                    { session }
                 );
 
                 await session.commitTransaction();
@@ -263,16 +262,10 @@ export class ExpensesService {
         const session = await this.connection.startSession(); // Fixed session start
         session.startTransaction();
 
-        // const updatedExpense = await this.expenseModel.findByIdAndUpdate(id, expense, { new: true });
-        // return {
-        //     message: 'Expense updated successfully',
-        //     updatedExpense: updatedExpense,
-        // };
         try {
             const category = await this.categoryModel.findOne({
                 name: expense.categoryName
-            }).session(session); // Include session in query
-            // console.log("Found category: ", category)
+            }).session(session);
 
             if (!category) {
                 const newCategory = await this.categoryModel.create(
@@ -284,7 +277,6 @@ export class ExpensesService {
                     throw new HttpException('Category creation failed', 500);
                 }
 
-                // const updatedExpense = await this.expenseModel.findByIdAndUpdate(id, expense, { new: true });
                 const updatedExpense = await this.expenseModel.findByIdAndUpdate(
                     id,
                     expense,
@@ -369,7 +361,5 @@ export class ExpensesService {
         //     })
         //     .exec();
     }
-
-
 }
 

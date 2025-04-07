@@ -28,11 +28,6 @@ export class ExpensesController {
     ) {
         return this.expensesService.findAll(expenseType, +page, limit, sortBy);
     }
-    // findAll(@Query('expenseType') expenseType: ExpenseType) {
-    //     if (!expenseType) return 'This action returns all expense';
-
-    //     return `This action returns all ${expenseType} expenses`;
-    // }
 
     @Get(':id')
     findOne(@Param('id') id: string) {

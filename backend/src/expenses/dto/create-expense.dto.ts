@@ -29,13 +29,6 @@ export class CreateExpenseDto {
     @IsNotEmpty()
     name: string;
 
-    // @IsString()
-    // @IsNotEmpty()
-    // category: string;
-    // @isMongoId()
-    // @IsNotEmpty()
-    // categoryId: ObjectId;
-
     @IsString()
     @IsNotEmpty()
     categoryName: string;
@@ -44,7 +37,6 @@ export class CreateExpenseDto {
     @IsNotEmpty()
     isRecurring: boolean;
 
-    // @IsString()
     recurringInterval?: 'daily' | 'weekly' | 'monthly';
 
     isOriginal?: boolean;
