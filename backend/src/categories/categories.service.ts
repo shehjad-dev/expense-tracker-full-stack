@@ -1,100 +1,100 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, HttpException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { Model, SortOrder } from 'mongoose';
 import { Category } from './schemas/category.schema';
-import { Model, FilterQuery, SortOrder } from 'mongoose';
-import { NotFoundException, BadRequestException, HttpException } from '@nestjs/common';
 import { CreateCategoryDto } from './dto/create-category.dto';
 
 @Injectable()
 export class CategoriesService {
     constructor(
-        @InjectModel(Category.name) private expenseModel: Model<Category>,
+        @InjectModel(Category.name) private categoryModel: Model<Category>,
     ) { }
 
-    async findAll(sortBy: string = 'newest') {
-        const sort: { [key: string]: SortOrder } = { createdAt: sortBy === 'oldest' ? 1 : -1 };
-        const categories = await this.expenseModel
-            .find()
-            .select('-__v')
-            .sort(sort)
-            .exec();
-        if (categories.length === 0) {
-            // Use NotFoundException if no documents match the query *at all*
-            throw new NotFoundException(`No categories found.`);
-        }
-
-        return {
-            message: 'Categories found successfully',
-            categories: categories
-        };
-    }
-
-    async findOne(id: string) {
-        if (!id.match(/^[0-9a-fA-F]{24}$/)) {
-            throw new BadRequestException(`Invalid ID format: ${id}`);
-        }
-
-        const category = await this.expenseModel.findById(id).select('-__v').exec();
-
-        if (!category) {
-            throw new NotFoundException(`Category with id ${id} not found`);
-        }
-        return {
-            message: 'Category found successfully',
-            category: category
-        }
-    }
-
-    async create(category: CreateCategoryDto) {
+    async findAll(sortBy: string = 'newest'): Promise<Category[]> {
         try {
-            const newCategory = await this.expenseModel.create(category);
-            return {
-                message: 'Category created successfully',
-                newCategoryId: newCategory._id,
-                // newExpenseId: newId,
-            };
+            const sort: { [key: string]: SortOrder } = { createdAt: sortBy === 'oldest' ? 1 : -1 };
+            const categories = await this.categoryModel.find().select('-__v').sort(sort).exec();
+
+            if (categories.length === 0) {
+                throw new NotFoundException('No categories found.');
+            }
+
+            return categories;
         } catch (error) {
-            console.error('Error creating category:', error.code);
+            if (error instanceof NotFoundException) {
+                throw error;
+            }
+            throw new HttpException('Failed to retrieve categories', 500);
+        }
+    }
+
+    async findOne(id: string): Promise<Category> {
+        try {
+            if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+                throw new BadRequestException(`Invalid ID format: ${id}`);
+            }
+
+            const category = await this.categoryModel.findById(id).select('-__v').exec();
+            if (!category) {
+                throw new NotFoundException(`Category with id ${id} not found`);
+            }
+
+            return category;
+        } catch (error) {
+            if (error instanceof NotFoundException || error instanceof BadRequestException) {
+                throw error;
+            }
+            throw new HttpException('Failed to retrieve category', 500);
+        }
+    }
+
+    async create(category: CreateCategoryDto): Promise<string> {
+        try {
+            const newCategory = await this.categoryModel.create(category);
+            return newCategory._id.toString();
+        } catch (error) {
             if (error.code === 11000) {
-                throw new HttpException('Cannot create Duplicate Category', 409);
+                throw new HttpException('Cannot create duplicate category', 409);
             }
             throw new BadRequestException('Failed to create category');
         }
-
     }
 
-    async update(id: string, category: CreateCategoryDto) {
+    async update(id: string, category: CreateCategoryDto): Promise<Category> {
         try {
-            const updatedCategory = await this.expenseModel.findByIdAndUpdate(id, category, { new: true });
-            console.log('Updated category:', updatedCategory);
+            const updatedCategory = await this.categoryModel.findByIdAndUpdate(id, category, {
+                new: true,
+            }).exec();
+
             if (!updatedCategory) {
-                throw new Error('Category Not found!');
+                throw new NotFoundException(`Category with id ${id} not found`);
             }
-            return {
-                message: 'Category updated successfully',
-                updatedCategory: updatedCategory,
-            };
+
+            return updatedCategory;
         } catch (error) {
-            if (error.message === 'Category Not found!') {
-                throw new HttpException('Category Not found!', 404);
+            if (error instanceof NotFoundException) {
+                throw error;
             }
-            console.error('Error updating category:', error.message);
             if (error.code === 11000) {
                 throw new HttpException('A category with this name already exists!', 409);
             }
             throw new BadRequestException('Failed to update category');
         }
-
     }
 
-    async remove(id: string) {
-        const deletedCategory = await this.expenseModel.findByIdAndDelete(id);
-        if (!deletedCategory) {
-            throw new NotFoundException(`Category with id ${id} not found`);
+    async remove(id: string): Promise<Category> {
+        try {
+            const deletedCategory = await this.categoryModel.findByIdAndDelete(id).exec();
+            if (!deletedCategory) {
+                throw new NotFoundException(`Category with id ${id} not found`);
+            }
+
+            return deletedCategory;
+        } catch (error) {
+            if (error instanceof NotFoundException) {
+                throw error;
+            }
+            throw new HttpException('Failed to delete category', 500);
         }
-        return {
-            message: 'Category deleted successfully',
-            deletedCategory: deletedCategory,
-        };
     }
 }
