@@ -74,7 +74,6 @@ export class ConsumerService implements OnModuleInit, OnModuleDestroy {
     }
 
     async onModuleDestroy() {
-        // Channel is closed by RabbitMQService, no action needed here
     }
 
     private generateCSV(expenses: Expense[]): string {

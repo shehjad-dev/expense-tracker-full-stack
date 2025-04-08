@@ -42,7 +42,7 @@ ExpenseSchema.pre<ExpenseDocument>('save', function (next) {
         return next(new Error('Recurring interval is required for recurring expenses'));
     }
 
-    if ((this.isNew || this.isModified('isRecurring')) && this.isRecurring && this.recurringInterval && !this.nextRecurrenceDate) {
+    if ((this.isNew || this.isModified('isRecurring')) && this.isRecurring && this.recurringInterval && this.isOriginal) {
         const baseDate = this.createdAt || new Date();
         const nextDate = new Date(baseDate);
 

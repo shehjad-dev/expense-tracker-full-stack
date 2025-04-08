@@ -114,6 +114,63 @@ npm run dev
 - [x]  Generate CSV report of monthly expenses
 
 
+## Things worth mentioning 🔥🔥
+
+### Recurring Expense and cron job architecture with expense schema
+
+- Every <b>expense</b> document created by the user has a field <b>isOriginal</b>, which holds the clarity that this expense is created by the user & not by the system.
+
+- Whenever a <b>expense</b> document is created by the user <b>(isOriginal=true)</b> where the expense is also <b>recurring(isRecurring=true)</b>, then a <b>nextRecurrenceDate</b> field is automatically calculated based on the interval and stored on the document through the presave hook on expense.schema.ts
+
+- A cron job runs daily at midnight, that fetches all the expenses where <b>(isOriginal=true & isRecurring=true & nextRecurrenceDate is today)</b>, and then for each of those expenses a follow up recurrent expense is created and there <b>isOriginal=false and nextRecurrenceDate stays undefined</b>
+
+- This way, a single source of truth is maintained for a recurring expense created by the user, and we maintain only that and use that only to create automated recurring payments on each interval.
+
+<br >
+
+
+<b>Example:</b> A expense document that is created by the user that is a recurring expense
+```bash
+{
+  "name": "Medicines",
+  "categoryName": "Medical",
+  "amount": 200,
+  "isRecurring": true,
+  "recurringInterval": "daily",
+  "isOriginal": true,
+  "createdAt": {
+    "$date": "2025-04-08T22:26:12.713Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-08T22:29:30.162Z"
+  },
+  "nextRecurrenceDate": {
+    "$date": "2025-04-09T22:26:12.713Z"
+  },
+}
+```
+
+<b>Example:</b> A expense that is created by the system (cron job) that is a recurring expense
+```bash
+{
+  "name": "Medicines",
+  "categoryName": "Medical",
+  "amount": 200,
+  "isRecurring": true,
+  "recurringInterval": "daily",
+  "isOriginal": false,
+  "createdAt": {
+    "$date": "2025-04-09T22:26:12.713Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-09T22:29:30.162Z"
+  },
+}
+```
+
+-------------
+
+
 
 
 

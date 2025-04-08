@@ -26,7 +26,8 @@ export class ExpensesService {
         @InjectConnection() private readonly connection: Connection,
     ) { }
 
-    @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, { name: 'dailyRecurringExpenseCheckerCron' })
+    // @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, { name: 'dailyRecurringExpenseCheckerCron' })
+    @Cron(CronExpression.EVERY_30_SECONDS, { name: 'dailyRecurringExpenseCheckerCron' })
     async handleRecurringExpenses() {
         this.logger.log('Checking for recurring expenses');
         const today = new Date();
@@ -95,7 +96,7 @@ export class ExpensesService {
             }
         } catch (error) {
             this.logger.error('Recurring expenses cron job failed', error);
-            throw error; // Let scheduler log it
+            throw error;
         }
     }
 
@@ -146,12 +147,10 @@ export class ExpensesService {
             ]);
 
             if (totalExpenses === 0) {
-                // const typeMessage = expenseType ? `of type '${expenseType}' ` : '';
                 return {
-                    message: "No expenses found",
+                    message: 'No expenses found',
                     expenses: [],
                 };
-                // throw new NotFoundException(`No expenses ${typeMessage}found.`);
             }
 
             const paginationMeta = this.getPaginationMeta(totalExpenses, page, limit, sortBy, expenseType);
@@ -219,7 +218,7 @@ export class ExpensesService {
                 }
 
                 const [newExpense] = await this.expenseModel.create(
-                    [{ ...expense, categoryName: newCategory[0].name, isOriginal: expense.isOriginal }],
+                    [{ ...expense, categoryName: newCategory[0].name, isOriginal: true }],
                     { session },
                 );
 
@@ -230,7 +229,7 @@ export class ExpensesService {
                 };
             } else {
                 const [newExpense] = await this.expenseModel.create(
-                    [{ ...expense, isOriginal: expense.isOriginal }],
+                    [{ ...expense, isOriginal: true }],
                     { session },
                 );
 
@@ -319,7 +318,7 @@ export class ExpensesService {
                 throw new NotFoundException(`Expense with id ${id} not found`);
             }
             return {
-                message: "Expense deleted successfully",
+                message: 'Expense deleted successfully',
                 deletedExpense: deletedExpense,
             };
         } catch (error) {
