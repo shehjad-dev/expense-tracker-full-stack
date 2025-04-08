@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ProducerService } from 'src/rabbitmq/producer/producer.service';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class CronJob {

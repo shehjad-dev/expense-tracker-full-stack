@@ -12,6 +12,7 @@ import { CronModule } from './cron/cron.module';
 import { RabbitMQModule } from './rabbitmq/rabbitmq.module';
 import { ConsumerModule } from './rabbitmq/consumer/consumer.module';
 import { ProducerModule } from './rabbitmq/producer/producer.module';
+import * as crypto from 'crypto';
 
 @Module({
     imports: [

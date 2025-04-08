@@ -7,6 +7,7 @@ import { Expense } from './schemas/expense.schema';
 import { Model, FilterQuery, SortOrder, Connection } from 'mongoose';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
 import { Category } from 'src/categories/schemas/category.schema';
+import * as crypto from 'crypto';
 
 type PaginatedMetaData = {
     totalExpenses: number;
