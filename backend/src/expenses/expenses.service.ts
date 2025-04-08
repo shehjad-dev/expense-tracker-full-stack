@@ -26,8 +26,7 @@ export class ExpensesService {
         @InjectConnection() private readonly connection: Connection,
     ) { }
 
-    // @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, { name: 'dailyRecurringExpenseCheckerCron' })
-    @Cron(CronExpression.EVERY_30_SECONDS, { name: 'dailyRecurringExpenseCheckerCron' })
+    @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, { name: 'dailyRecurringExpenseCheckerCron' })
     async handleRecurringExpenses() {
         this.logger.log('Checking for recurring expenses');
         const today = new Date();
