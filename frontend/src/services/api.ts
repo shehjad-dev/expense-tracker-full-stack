@@ -192,7 +192,7 @@ export const expensesApi = createApi({
             async onQueryStarted(_id, { dispatch, queryFulfilled }) {
                 try {
                     await queryFulfilled;
-                    dispatch(expensesApi.util.invalidateTags(['Categories']));
+                    dispatch(expensesApi.util.invalidateTags(['Categories', 'Expenses']));
                 } catch (error) {
                     console.error('Failed to delete category:', error);
                 }
