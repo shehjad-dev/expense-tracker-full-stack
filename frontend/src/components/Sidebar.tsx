@@ -5,8 +5,6 @@ import { Link } from 'react-router'
 import { useLocation } from 'react-router'
 import { Button } from './ui/button'
 
-type Props = {}
-
 const menuItems = [
     {
         name: 'Expenses',
@@ -20,7 +18,7 @@ const menuItems = [
     }
 ]
 
-const Sidebar = (props: Props) => {
+const Sidebar = () => {
     const [activeLink, setActiveLink] = useState<string>('');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
     const currentPath = useLocation().pathname;
