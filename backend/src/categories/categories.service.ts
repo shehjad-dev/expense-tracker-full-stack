@@ -91,35 +91,6 @@ export class CategoriesService {
         }
     }
 
-    // async update(id: string, category: CreateCategoryDto): Promise<{ message: string; updatedCategory: Category }> {
-    //     this.logger.debug(`Updating category id=${id}`, category);
-    //     try {
-    //         const updatedCategory = await this.categoryModel.findByIdAndUpdate(id, category, {
-    //             new: true,
-    //         }).exec();
-
-    //         if (!updatedCategory) {
-    //             this.logger.warn(`Category with id=${id} not found`);
-    //             throw new NotFoundException(`Category with id ${id} not found`);
-    //         }
-
-    //         this.logger.log(`Category id=${id} updated successfully`);
-    //         return {
-    //             message: 'Category updated successfully',
-    //             updatedCategory: updatedCategory,
-    //         }
-    //     } catch (error) {
-    //         if (error instanceof NotFoundException) {
-    //             throw error;
-    //         }
-    //         if (error.code === 11000) {
-    //             this.logger.warn('Duplicate category name detected', category);
-    //             throw new HttpException('A category with this name already exists!', 409);
-    //         }
-    //         this.logger.error(`Failed to update category id=${id}`, error);
-    //         throw new BadRequestException('Failed to update category');
-    //     }
-    // }
     async update(id: string, category: CreateCategoryDto): Promise<UpdateCategoryResponseDto> {
         this.logger.debug(`Updating category id=${id}`, category);
         const session = await this.connection.startSession();
@@ -186,24 +157,64 @@ export class CategoriesService {
 
     async remove(id: string): Promise<{ message: string; deletedCategory: Category }> {
         this.logger.debug(`Deleting category id=${id}`);
+        const session = await this.connection.startSession(); // Start a transaction session
         try {
-            const deletedCategory = await this.categoryModel.findByIdAndDelete(id).exec();
-            if (!deletedCategory) {
+            session.startTransaction();
+
+            // Step 1: Find the category to get its name before deletion
+            const categoryToDelete = await this.categoryModel
+                .findById(id)
+                .session(session)
+                .exec();
+
+            if (!categoryToDelete) {
                 this.logger.warn(`Category with id=${id} not found`);
                 throw new NotFoundException(`Category with id ${id} not found`);
             }
 
-            this.logger.log(`Category id=${id} deleted successfully`);
+            const categoryName = categoryToDelete.name;
+            this.logger.debug(`Category to delete: ${categoryName}`);
+
+            // Step 2: Update all expenses with this categoryName to "n/a"
+            const updateResult = await this.expenseModel
+                .updateMany(
+                    { categoryName: categoryName }, // Find expenses with this category
+                    { $set: { categoryName: 'n/a' } }, // Set categoryName to "n/a"
+                    { session } // Bind to the transaction
+                )
+                .exec();
+
+            this.logger.debug(`Updated ${updateResult.modifiedCount} expenses to categoryName="n/a"`);
+
+            // Step 3: Delete the category
+            const deletedCategory = await this.categoryModel
+                .findByIdAndDelete(id, { session })
+                .exec();
+
+            if (!deletedCategory) {
+                this.logger.warn(`Category with id=${id} not found after deletion attempt`);
+                throw new NotFoundException(`Category with id ${id} not found`);
+            }
+
+            // Step 4: Commit the transaction
+            await session.commitTransaction();
+            this.logger.log(`Category id=${id} deleted successfully, updated ${updateResult.modifiedCount} expenses`);
+
             return {
-                message: 'Category deleted successfully',
+                message: 'Category deleted successfully, related expenses updated to "n/a"',
                 deletedCategory: deletedCategory,
             };
         } catch (error) {
+            // Roll back the transaction on error
+            await session.abortTransaction();
             if (error instanceof NotFoundException) {
                 throw error;
             }
             this.logger.error(`Failed to delete category id=${id}`, error);
             throw new HttpException('Failed to delete category', 500);
+        } finally {
+            // Always end the session
+            session.endSession();
         }
     }
 }

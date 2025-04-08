@@ -68,7 +68,7 @@ export class ExpensesController {
     }
 
     @Post()
-    @ApiOperation({ summary: 'Create a new expense', description: 'Creates a new expense with the provided details.' })
+    @ApiOperation({ summary: 'Create a new expense', description: 'Creates a new expense with the provided details. Also, if recurring, sets a next recurrence date based on interval & if category is new then create one automatically.' })
     @ApiBody({ type: CreateExpenseDto, description: 'Expense data to create' })
     @ApiResponse({
         status: 201,
@@ -83,7 +83,7 @@ export class ExpensesController {
     }
 
     @Patch(':id')
-    @ApiOperation({ summary: 'Update an expense', description: 'Updates an existing expense by its ID.' })
+    @ApiOperation({ summary: 'Update an expense', description: 'Updates an existing expense by its ID. Also, if the category is new, then creates one automatically.' })
     @ApiParam({ name: 'id', description: 'The ID of the expense to update', example: '507f1f77bcf86cd799439011' })
     @ApiBody({ type: UpdateExpenseDto, description: 'Updated expense data' })
     @ApiResponse({

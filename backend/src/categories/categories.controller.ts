@@ -78,7 +78,7 @@ export class CategoriesController {
     }
 
     @Patch(':id')
-    @ApiOperation({ summary: 'Update a category', description: 'Updates an existing category by its ID.' })
+    @ApiOperation({ summary: 'Update a category', description: 'Updates an existing category by its ID. Also updates all expenses with the old category name to the new category name.' })
     @ApiParam({ name: 'id', description: 'The ID of the category to update', example: '507f1f77bcf86cd799439011' })
     @ApiBody({ type: CreateCategoryDto, description: 'Updated category data' })
     @ApiResponse({
@@ -99,7 +99,7 @@ export class CategoriesController {
     }
 
     @Delete(':id')
-    @ApiOperation({ summary: 'Delete a category', description: 'Deletes a category by its ID.' })
+    @ApiOperation({ summary: 'Delete a category', description: 'Deletes a category by its ID. Also, sets all expenses with the category name to "n/a"' })
     @ApiParam({ name: 'id', description: 'The ID of the category to delete', example: '507f1f77bcf86cd799439011' })
     @ApiResponse({
         status: 200,
