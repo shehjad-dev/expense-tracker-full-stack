@@ -35,7 +35,7 @@ git clone https://github.com/shehjad-dev/expense-tracker-full-stack.git
 mongodb+srv://<username>:<password>@<cluster>.mongodb.net/
 ```
 
-5. Replace <username>, <password>, and <dbname> with your values that you can get from MONGODB Atlas dashboard.
+5. Replace the username, password, cluster name with your values that you can get from MONGODB Atlas dashboard.
 
 </details>
 
