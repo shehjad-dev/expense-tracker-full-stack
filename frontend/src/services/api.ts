@@ -1,38 +1,13 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { RootState } from '@/store';
-
-type Expense = {
-    _id: string;
-    categoryName: string;
-    name: string;
-    amount: number;
-    isRecurring: boolean;
-    recurringInterval?: string;
-    nextRecurrenceDate: string;
-    isOriginal: boolean;
-    createdAt: string;
-    updatedAt: string;
-};
-
-type PaginatedMetaData = {
-    totalExpenses: number;
-    currentPage: number;
-    totalPages: number;
-    nextPage: string | null;
-    prevPage: string | null;
-};
+import { DEFAULT_SORT_BY, DEFAULT_EXPENSES_LIMIT_PER_PAGE, DEFAULT_PAGE_NO } from '../constants'
+import { Expense, PaginatedMetaData } from '@/types/expenses.types'
+import { Category } from '@/types/categories.type'
 
 type ExpensesResponse = {
     message: string;
     expenses: Expense[];
     paginationMeta?: PaginatedMetaData;
-};
-
-type Category = {
-    _id: string;
-    name: string;
-    createdAt: string;
-    updatedAt: string;
 };
 
 type CategoriesResponse = {
@@ -77,11 +52,6 @@ type CreateCategoryResponse = {
     newCategoryId: string;
 };
 
-type CreateCategoryError = {
-    statusCode: number;
-    message: string;
-};
-
 type UpdateCategoryRequest = {
     name: string;
 };
@@ -106,7 +76,12 @@ export const expensesApi = createApi({
             ExpensesResponse,
             { page?: number; limit?: number; sortBy?: 'newest' | 'oldest'; expenseType?: 'recurring' | 'non-recurring' }
         >({
-            query: ({ page = 1, limit = 5, sortBy = 'newest', expenseType }) => {
+            query: ({
+                page = DEFAULT_PAGE_NO,
+                limit = DEFAULT_EXPENSES_LIMIT_PER_PAGE,
+                sortBy = DEFAULT_SORT_BY,
+                expenseType
+            }) => {
                 const params = new URLSearchParams({
                     page: page.toString(),
                     limit: limit.toString(),
@@ -203,7 +178,7 @@ export const expensesApi = createApi({
             async onQueryStarted(_args, { dispatch, queryFulfilled }) {
                 try {
                     await queryFulfilled;
-                    dispatch(expensesApi.util.invalidateTags(['Categories']));
+                    dispatch(expensesApi.util.invalidateTags(['Categories', 'Expenses']));
                 } catch (error) {
                     console.error('Failed to update category:', error);
                 }

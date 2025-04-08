@@ -19,19 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ChevronDownIcon } from 'lucide-react';
 import { toast } from "sonner";
-
-type Expense = {
-    _id: string;
-    categoryName: string;
-    name: string;
-    amount: number;
-    isRecurring: boolean;
-    recurringInterval?: string;
-    nextRecurrenceDate: string;
-    isOriginal: boolean;
-    createdAt: string;
-    updatedAt: string;
-};
+import { Expense } from '@/types/expenses.types';
 
 type Props = {
     expense: Expense;

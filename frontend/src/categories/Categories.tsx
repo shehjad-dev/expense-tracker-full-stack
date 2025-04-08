@@ -6,18 +6,13 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table';
 import CreateCategory from './components/CreateCategory';
 import EditCategory from './components/EditCategory';
-import { BugIcon, Delete, Loader2Icon, RabbitIcon } from 'lucide-react';
+import { BugIcon, Loader2Icon, RabbitIcon } from 'lucide-react';
 import DeleteCategory from './components/DeleteCategory';
+import { Category } from '@/types/categories.type'
 
-type Category = {
-    _id: string;
-    name: string;
-    createdAt: string;
-    updatedAt: string;
-};
 
 const Categories = () => {
     const { data, isLoading, error } = useGetCategoriesQuery();
@@ -56,9 +51,9 @@ const Categories = () => {
                 <div className="flex justify-between items-center gap-4 sticky top-0 bg-background z-10 py-4">
                     <h4 className="text-lg md:text-2xl font-medium">Categories</h4>
                 </div>
-                <div className='flex flex-col mt-4 rounded-xl border-[1px] border-sidebar-border items-center justify-center w-ful h-[300px]'>
-                    <RabbitIcon className='w-10 h-10 text-rose-400 animate-bounce' />
-                    <div className='text-lg font-medium mb-4'>No categories found</div>
+                <div className="flex flex-col mt-4 rounded-xl border-[1px] border-sidebar-border items-center justify-center w-ful h-[300px]">
+                    <RabbitIcon className="w-10 h-10 text-rose-400 animate-bounce" />
+                    <div className="text-lg font-medium mb-4">No categories found</div>
 
                     <CreateCategory />
                 </div>

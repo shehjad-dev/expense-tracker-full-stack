@@ -17,30 +17,24 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import CreateNew from './components/CreateNew';
+import CreateExpense from './components/CreateExpense';
 import EditExpense from './components/EditExpense';
 import DeleteExpense from './components/DeleteExpense';
-
-type Expense = {
-    _id: string;
-    categoryName: string;
-    name: string;
-    amount: number;
-    isRecurring: boolean;
-    recurringInterval?: string;
-    nextRecurrenceDate: string;
-    isOriginal: boolean;
-    createdAt: string;
-    updatedAt: string;
-};
+import {
+    DEFAULT_CHART_DATA_TYPE,
+    DEFAULT_SORT_BY,
+    DEFAULT_EXPENSES_LIMIT_PER_PAGE,
+    DEFAULT_PAGE_NO
+} from '../constants'
+import { Expense } from '@/types/expenses.types';
 
 const Expenses = () => {
-    const [page, setPage] = useState(1);
-    const [dataType, setDataType] = useState<'summary' | 'daily'>('summary');
-    const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest');
+    const [page, setPage] = useState(DEFAULT_PAGE_NO);
+    const [dataType, setDataType] = useState<'summary' | 'daily'>(DEFAULT_CHART_DATA_TYPE);
+    const [sortBy, setSortBy] = useState<'newest' | 'oldest'>(DEFAULT_SORT_BY);
     const [expenseType, setExpenseType] = useState<'recurring' | 'non-recurring' | undefined>(undefined);
     const [clientExpenseType, setClientExpenseType] = useState<'recurring' | 'non-recurring' | undefined>(undefined);
-    const limit = 5;
+    const limit = DEFAULT_EXPENSES_LIMIT_PER_PAGE;
 
     useEffect(() => {
         setPage(1);
@@ -214,7 +208,7 @@ const Expenses = () => {
                             <RabbitIcon className='w-10 h-10 text-rose-400 animate-bounce' />
                             <div className='text-lg font-medium mb-4'>No expenses found</div>
 
-                            <CreateNew />
+                            <CreateExpense />
                         </div>
                     )
                 }
@@ -224,7 +218,7 @@ const Expenses = () => {
             {/* Pagination */}
             {expenses.length > 0 && (
                 <div className="flex md:flex-row flex-col-reverse gap-2 items-center justify-between mt-4 pb-[50px]">
-                    <CreateNew />
+                    <CreateExpense />
                     <div className="w-fit gap-3 flex items-center">
                         <Button
                             onClick={handlePrevPage}

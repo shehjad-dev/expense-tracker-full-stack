@@ -1,8 +1,10 @@
 import { Injectable, NotFoundException, BadRequestException, HttpException, Logger } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, SortOrder } from 'mongoose';
+import { InjectModel, InjectConnection } from '@nestjs/mongoose';
+import { Model, SortOrder, Connection } from 'mongoose';
 import { Category } from './schemas/category.schema';
 import { CreateCategoryDto } from './dto/create-category.dto';
+import { Expense } from 'src/expenses/schemas/expense.schema';
+import { UpdateCategoryResponseDto } from './dto/category-response.dto';
 
 @Injectable()
 export class CategoriesService {
@@ -10,6 +12,8 @@ export class CategoriesService {
 
     constructor(
         @InjectModel(Category.name) private categoryModel: Model<Category>,
+        @InjectModel(Expense.name) private expenseModel: Model<Expense>,
+        @InjectConnection() private readonly connection: Connection,
     ) { }
 
     async findAll(sortBy: string = 'newest'): Promise<{ message: string; categories: Category[] }> {
@@ -87,24 +91,85 @@ export class CategoriesService {
         }
     }
 
-    async update(id: string, category: CreateCategoryDto): Promise<{ message: string; updatedCategory: Category }> {
-        this.logger.debug(`Updating category id=${id}`, category);
-        try {
-            const updatedCategory = await this.categoryModel.findByIdAndUpdate(id, category, {
-                new: true,
-            }).exec();
+    // async update(id: string, category: CreateCategoryDto): Promise<{ message: string; updatedCategory: Category }> {
+    //     this.logger.debug(`Updating category id=${id}`, category);
+    //     try {
+    //         const updatedCategory = await this.categoryModel.findByIdAndUpdate(id, category, {
+    //             new: true,
+    //         }).exec();
 
-            if (!updatedCategory) {
+    //         if (!updatedCategory) {
+    //             this.logger.warn(`Category with id=${id} not found`);
+    //             throw new NotFoundException(`Category with id ${id} not found`);
+    //         }
+
+    //         this.logger.log(`Category id=${id} updated successfully`);
+    //         return {
+    //             message: 'Category updated successfully',
+    //             updatedCategory: updatedCategory,
+    //         }
+    //     } catch (error) {
+    //         if (error instanceof NotFoundException) {
+    //             throw error;
+    //         }
+    //         if (error.code === 11000) {
+    //             this.logger.warn('Duplicate category name detected', category);
+    //             throw new HttpException('A category with this name already exists!', 409);
+    //         }
+    //         this.logger.error(`Failed to update category id=${id}`, error);
+    //         throw new BadRequestException('Failed to update category');
+    //     }
+    // }
+    async update(id: string, category: CreateCategoryDto): Promise<UpdateCategoryResponseDto> {
+        this.logger.debug(`Updating category id=${id}`, category);
+        const session = await this.connection.startSession();
+        try {
+            session.startTransaction();
+
+            // Find the category to get the old name
+            const existingCategory = await this.categoryModel
+                .findById(id)
+                .session(session)
+                .exec();
+
+            if (!existingCategory) {
                 this.logger.warn(`Category with id=${id} not found`);
                 throw new NotFoundException(`Category with id ${id} not found`);
             }
 
+            const oldCategoryName = existingCategory.name;
+            const newCategoryName = category.name;
+
+            // Update all expenses with the old categoryName to the new categoryName
+            await this.expenseModel
+                .updateMany(
+                    { categoryName: oldCategoryName },
+                    { $set: { categoryName: newCategoryName } },
+                    { session }
+                )
+                .exec();
+
+            this.logger.debug(`Updated expenses from categoryName=${oldCategoryName} to ${newCategoryName}`);
+
+            const updatedCategory = await this.categoryModel
+                .findByIdAndUpdate(id, category, { new: true, session })
+                .exec();
+
+            if (!updatedCategory) {
+                this.logger.warn(`Category with id=${id} not found after update attempt`);
+                throw new NotFoundException(`Category with id ${id} not found`);
+            }
+
             this.logger.log(`Category id=${id} updated successfully`);
+            await session.commitTransaction();
+
+            // const categoryPlain = updatedCategory.toObject();
             return {
                 message: 'Category updated successfully',
                 updatedCategory: updatedCategory,
-            }
+            };
         } catch (error) {
+            await session.abortTransaction();
             if (error instanceof NotFoundException) {
                 throw error;
             }
@@ -114,6 +179,8 @@ export class CategoriesService {
             }
             this.logger.error(`Failed to update category id=${id}`, error);
             throw new BadRequestException('Failed to update category');
+        } finally {
+            session.endSession();
         }
     }
 
