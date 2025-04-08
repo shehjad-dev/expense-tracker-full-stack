@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ProducerService } from 'src/rabbitmq/producer/producer.service';
-import * as crypto from 'crypto';
 
 @Injectable()
 export class CronJob {
@@ -10,7 +9,7 @@ export class CronJob {
     constructor(private readonly producerService: ProducerService) { }
 
     // @Cron('0 0 1 * *') // Runs monthly at 1 AM || @Cron(CronExpression.EVERY_5_SECONDS)
-    @Cron('0 0 1 * *')
+    @Cron('0 0 1 * *', { name: 'monthlyExpenseReportsCron' })
     async handleCron() {
         this.logger.log('Monthly cron job started');
         const msg = {

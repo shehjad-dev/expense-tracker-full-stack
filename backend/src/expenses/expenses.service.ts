@@ -7,7 +7,6 @@ import { Expense } from './schemas/expense.schema';
 import { Model, FilterQuery, SortOrder, Connection } from 'mongoose';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
 import { Category } from 'src/categories/schemas/category.schema';
-import * as crypto from 'crypto';
 
 type PaginatedMetaData = {
     totalExpenses: number;
@@ -27,7 +26,7 @@ export class ExpensesService {
         @InjectConnection() private readonly connection: Connection,
     ) { }
 
-    @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+    @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, { name: 'dailyRecurringExpenseCheckerCron' })
     async handleRecurringExpenses() {
         this.logger.log('Checking for recurring expenses');
         const today = new Date();
