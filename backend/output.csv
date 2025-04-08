@@ -1,3 +1,0 @@
-sl.no,categoryName,name,amount,isRecurring,recurringInterval,createdAt,updatedAt
-1,Medical,Medicine,200,true,daily,2025-03-05T12:16:04.094Z,2025-04-06T13:42:30.748Z
-2,Family,Outing,600,true,weekly,2025-03-06T13:42:30.141Z,2025-04-06T13:42:30.141Z
