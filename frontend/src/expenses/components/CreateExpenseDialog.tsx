@@ -21,7 +21,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ChevronDownIcon } from 'lucide-react';
 import { toast } from "sonner";
 
-const CreateExpense = () => {
+const CreateExpenseDialog = () => {
     const [name, setName] = useState('');
     const [categoryName, setCategoryName] = useState(''); // For dropdown selection
     const [customCategoryName, setCustomCategoryName] = useState(''); // For custom input
@@ -241,4 +241,4 @@ const CreateExpense = () => {
     );
 };
 
-export default CreateExpense;
+export default CreateExpenseDialog;

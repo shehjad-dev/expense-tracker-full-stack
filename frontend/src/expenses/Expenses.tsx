@@ -17,9 +17,9 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import CreateExpense from './components/CreateExpense';
-import EditExpense from './components/EditExpense';
-import DeleteExpense from './components/DeleteExpense';
+import CreateExpenseDialog from './components/CreateExpenseDialog';
+import EditExpenseDialog from './components/EditExpenseDialog';
+import DeleteExpenseDialog from './components/DeleteExpenseDialog';
 import {
     DEFAULT_CHART_DATA_TYPE,
     DEFAULT_SORT_BY,
@@ -193,8 +193,8 @@ const Expenses = () => {
                                         <TableCell>{expense.isRecurring ? expense.recurringInterval || '-' : '-'}</TableCell>
                                         <TableCell>{new Date(expense.createdAt).toLocaleDateString()}</TableCell>
                                         <TableCell className='flex items-center gap-2'>
-                                            <EditExpense expense={expense} />
-                                            <DeleteExpense
+                                            <EditExpenseDialog expense={expense} />
+                                            <DeleteExpenseDialog
                                                 expenseId={expense._id}
                                                 expenseName={expense.name}
                                             />
@@ -208,7 +208,7 @@ const Expenses = () => {
                             <RabbitIcon className='w-10 h-10 text-rose-400 animate-bounce' />
                             <div className='text-lg font-medium mb-4'>No expenses found</div>
 
-                            <CreateExpense />
+                            <CreateExpenseDialog />
                         </div>
                     )
                 }
@@ -218,7 +218,7 @@ const Expenses = () => {
             {/* Pagination */}
             {expenses.length > 0 && (
                 <div className="flex md:flex-row flex-col-reverse gap-2 items-center justify-between mt-4 pb-[50px]">
-                    <CreateExpense />
+                    <CreateExpenseDialog />
                     <div className="w-fit gap-3 flex items-center">
                         <Button
                             onClick={handlePrevPage}

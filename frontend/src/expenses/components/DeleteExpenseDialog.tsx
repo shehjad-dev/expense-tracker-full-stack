@@ -17,7 +17,7 @@ type Props = {
     expenseName: string;
 };
 
-const DeleteExpense = ({ expenseId, expenseName }: Props) => {
+const DeleteExpenseDialog = ({ expenseId, expenseName }: Props) => {
     const [open, setOpen] = useState(false);
     const [deleteExpense, { isLoading: deleteExpenseLoading }] = useDeleteExpenseMutation();
 
@@ -71,4 +71,4 @@ const DeleteExpense = ({ expenseId, expenseName }: Props) => {
     );
 };
 
-export default DeleteExpense;
+export default DeleteExpenseDialog;

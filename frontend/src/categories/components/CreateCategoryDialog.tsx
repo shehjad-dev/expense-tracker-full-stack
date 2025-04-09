@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { useUpdateCategoryMutation } from '@/services/api';
+import { useCreateCategoryMutation } from '@/services/api';
 import { Button } from '@/components/ui/button';
-import { PencilIcon } from 'lucide-react';
+import { PlusIcon } from 'lucide-react';
 import {
     Dialog,
     DialogContent,
@@ -12,16 +12,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Category } from '@/types/categories.type'
 
-type Props = {
-    category: Category;
-};
-
-const EditCategory = ({ category }: Props) => {
-    const [name, setName] = useState(category.name);
+const CreateCategoryDialog = () => {
+    const [name, setName] = useState('');
     const [open, setOpen] = useState(false);
-    const [updateCategory, { isLoading: updateCategoryLoading }] = useUpdateCategoryMutation();
+    const [createCategory, { isLoading: createCategoryLoading }] = useCreateCategoryMutation();
 
     const handleSubmit = async () => {
         if (!name.trim()) {
@@ -29,24 +24,17 @@ const EditCategory = ({ category }: Props) => {
             return;
         }
 
-        if (name === category.name) {
-            toast.info("No changes to save");
-            setOpen(false);
-            return;
-        }
-
         try {
-            await updateCategory({ id: category._id, data: { name } }).unwrap();
-            toast.success("Category updated successfully");
+            await createCategory({ name }).unwrap();
+            toast.success("Category created successfully");
+            setName('');
             setOpen(false);
         } catch (error: any) {
-            if (error?.data?.statusCode === 404) {
-                toast.error("Category not found");
-            } else if (error?.data?.statusCode === 409) {
-                toast.error("A category with this name already exists");
+            if (error?.data?.statusCode === 409) {
+                toast.error("Cannot create duplicate category");
             } else {
-                toast.error("Failed to update category");
-                console.error('Failed to update category:', error);
+                toast.error("Failed to create category");
+                console.error('Failed to create category:', error);
             }
         }
     };
@@ -54,21 +42,21 @@ const EditCategory = ({ category }: Props) => {
     const handleDialogChange = (newOpen: boolean) => {
         setOpen(newOpen);
         if (!newOpen) {
-            setName(category.name); // Reset to original name when closing
+            setName(''); // Reset input when closing
         }
     };
 
     return (
         <Dialog open={open} onOpenChange={handleDialogChange}>
             <DialogTrigger asChild>
-                <Button variant="outline">
-                    <PencilIcon className="h-4 w-4 mr-2" />
-                    Edit
+                <Button>
+                    <PlusIcon className="h-4 w-4" />
+                    Create New
                 </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Edit Category</DialogTitle>
+                    <DialogTitle>Create New Category</DialogTitle>
                 </DialogHeader>
 
                 <div className="space-y-4 mt-4">
@@ -79,15 +67,15 @@ const EditCategory = ({ category }: Props) => {
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             placeholder="Enter category name"
-                            disabled={updateCategoryLoading}
+                            disabled={createCategoryLoading}
                         />
                     </div>
 
                     <Button
                         onClick={handleSubmit}
-                        disabled={updateCategoryLoading || !name.trim()}
+                        disabled={createCategoryLoading || !name.trim()}
                     >
-                        {updateCategoryLoading ? 'Updating...' : 'Update Category'}
+                        {createCategoryLoading ? 'Creating...' : 'Create Category'}
                     </Button>
                 </div>
             </DialogContent>
@@ -95,4 +83,4 @@ const EditCategory = ({ category }: Props) => {
     );
 };
 
-export default EditCategory;
+export default CreateCategoryDialog;

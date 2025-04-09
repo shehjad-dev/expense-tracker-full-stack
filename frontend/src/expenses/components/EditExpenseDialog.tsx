@@ -25,7 +25,7 @@ type Props = {
     expense: Expense;
 };
 
-const EditExpense = ({ expense }: Props) => {
+const EditExpenseDialog = ({ expense }: Props) => {
     const [name, setName] = useState(expense.name);
     const [categoryName, setCategoryName] = useState(expense.categoryName); // Dropdown selection
     const [customCategoryName, setCustomCategoryName] = useState(''); // Custom input
@@ -217,4 +217,4 @@ const EditExpense = ({ expense }: Props) => {
     );
 };
 
-export default EditExpense;
+export default EditExpenseDialog;

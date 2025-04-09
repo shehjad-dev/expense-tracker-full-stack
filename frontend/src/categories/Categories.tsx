@@ -7,10 +7,10 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import CreateCategory from './components/CreateCategory';
-import EditCategory from './components/EditCategory';
+import CreateCategoryDialog from './components/CreateCategoryDialog';
+import EditCategoryDialog from './components/EditCategoryDialog';
 import { BugIcon, Loader2Icon, RabbitIcon } from 'lucide-react';
-import DeleteCategory from './components/DeleteCategory';
+import DeleteCategoryDialog from './components/DeleteCategoryDialog';
 import { Category } from '@/types/categories.type'
 
 
@@ -55,7 +55,7 @@ const Categories = () => {
                     <RabbitIcon className="w-10 h-10 text-rose-400 animate-bounce" />
                     <div className="text-lg font-medium mb-4">No categories found</div>
 
-                    <CreateCategory />
+                    <CreateCategoryDialog />
                 </div>
             </div>
         );
@@ -73,7 +73,7 @@ const Categories = () => {
             <div className="mt-4 flex flex-row items-center justify-between">
                 <p>Total Categories: {totalCategories}</p>
 
-                <CreateCategory />
+                <CreateCategoryDialog />
             </div>
 
             <div className="mt-2 overflow-y-auto min-h-[220px] max-h-[600px]">
@@ -93,10 +93,10 @@ const Categories = () => {
                                 <TableCell>{new Date(category.createdAt).toLocaleDateString()}</TableCell>
                                 <TableCell>{new Date(category.updatedAt).toLocaleDateString()}</TableCell>
                                 <TableCell className='flex items-center gap-2 '>
-                                    <EditCategory
+                                    <EditCategoryDialog
                                         category={category}
                                     />
-                                    <DeleteCategory
+                                    <DeleteCategoryDialog
                                         categoryId={category._id}
                                         categoryName={category.name}
                                     />

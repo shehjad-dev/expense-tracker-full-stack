@@ -18,7 +18,7 @@ type Props = {
     categoryName: string;
 };
 
-const DeleteCategory = ({ categoryId, categoryName }: Props) => {
+const DeleteCategoryDialog = ({ categoryId, categoryName }: Props) => {
     const [open, setOpen] = useState(false);
     const [deleteCategory, { isLoading: deleteCategoryLoading }] = useDeleteCategoryMutation();
 
@@ -72,4 +72,4 @@ const DeleteCategory = ({ categoryId, categoryName }: Props) => {
     );
 };
 
-export default DeleteCategory;
+export default DeleteCategoryDialog;
