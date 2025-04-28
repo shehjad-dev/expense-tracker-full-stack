@@ -168,7 +168,8 @@ export class ExpensesService {
     sortBy: string = 'newest',
   ): Promise<{
     message: string;
-    expenses: TransformedExpense[];
+    expenses: Expense[];
+    // expenses: TransformedExpense[] || ExpenseType;
     paginationMeta?: PaginatedMetaData;
   }> {
     page = Math.max(1, Math.floor(page));
