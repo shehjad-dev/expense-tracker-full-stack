@@ -4,7 +4,7 @@ import { ExpensesModule } from 'src/expenses/expenses.module';
 import { ConsumerService } from './consumer.service';
 
 @Module({
-    imports: [RabbitMQModule, ExpensesModule],
-    providers: [ConsumerService],
+  imports: [RabbitMQModule, ExpensesModule],
+  providers: [ConsumerService],
 })
-export class ConsumerModule { }
+export class ConsumerModule {}

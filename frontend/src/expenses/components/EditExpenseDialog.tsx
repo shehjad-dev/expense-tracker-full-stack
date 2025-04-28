@@ -163,6 +163,8 @@ const EditExpenseDialog = ({ expense }: Props) => {
                                     <DropdownMenuContent className="max-h-[200px] overflow-y-auto">
                                         {categoriesLoading ? (
                                             <DropdownMenuItem disabled>Loading...</DropdownMenuItem>
+                                        ) : categories.length === 0 ? (
+                                            <DropdownMenuItem disabled>No categories found</DropdownMenuItem>
                                         ) : (
                                             categories.map((category) => (
                                                 <DropdownMenuItem

@@ -14,6 +14,19 @@ interface Expense {
     updatedAt: Date;
 }
 
+interface TransformedExpense {
+    _id: string;
+    name: string;
+    amount: number;
+    isRecurring: boolean;
+    recurringInterval?: 'daily' | 'weekly' | 'monthly';
+    nextRecurrenceDate?: Date;
+    isOriginal: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+    categoryName: string;
+}
+
 @Injectable()
 export class ConsumerService implements OnModuleInit, OnModuleDestroy {
     private readonly logger = new Logger(ConsumerService.name);
@@ -45,7 +58,7 @@ export class ConsumerService implements OnModuleInit, OnModuleDestroy {
                         const startOfLastMonth = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0));
                         const endOfLastMonth = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
 
-                        const expenses = await this.expensesService.findByDateRange(
+                        const expenses: TransformedExpense[] = await this.expensesService.findByDateRange(
                             startOfLastMonth,
                             endOfLastMonth,
                         );
@@ -76,7 +89,7 @@ export class ConsumerService implements OnModuleInit, OnModuleDestroy {
     async onModuleDestroy() {
     }
 
-    private generateCSV(expenses: Expense[]): string {
+    private generateCSV(expenses: TransformedExpense[]): string {
         const headers = [
             'sl.no',
             'categoryName',

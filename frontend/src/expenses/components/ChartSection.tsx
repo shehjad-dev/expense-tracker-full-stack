@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 type Props = {
     dataType: 'summary' | 'daily';
     setDataType: (dataType: 'summary' | 'daily') => void;
-    chartData: any[];
+    chartData: { category: string; amount: number }[] | { date: string; amount: number }[];
 }
 
 // Chart configuration
